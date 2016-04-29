@@ -11,6 +11,7 @@
 
 #include "structs.h"
 
+
 void drawCube(int size, Color color, Point2 position) {
   float x = position.x;
   float y = position.y;
@@ -27,16 +28,22 @@ int ESAT::main(int argc, char** argv) {
   
   
   WSAData wsa;
-  SOCKET sock;
-  struct sockaddr_in ip;
+  SOCKET sock, socks;
+  struct sockaddr_in ip, ips;
   char buffer[512];
-  int size=0;
+  int size=sizeof(ip);
   WSAStartup(MAKEWORD(2,0), &wsa);
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   ip.sin_family=AF_INET;
-  ip.sin_port=htons(9999);
+  ip.sin_port=htons(8888);
   ip.sin_addr.s_addr=inet_addr("127.0.0.1");
-	
+	bind(sock, (SOCKADDR*)&ip, sizeof(ip));
+  
+  socks = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  ips.sin_family=AF_INET;
+  ips.sin_port=htons(9999);
+  ips.sin_addr.s_addr=inet_addr("127.0.0.1");
+  
   ESAT::WindowInit(1366, 768);
   ESAT::DrawSetTextFont("assets/font/medieval.ttf");
   
@@ -47,23 +54,31 @@ int ESAT::main(int argc, char** argv) {
   
   //Set placeholder player info
   /**** Placeholders *****/
-	player->id = 42;
-	player->ip = 25000;
-	//player->name = "player";
+  //player->name = "player";
 	
-
-	player->color.r = 100;
-	player->color.g = 50;
-	player->color.b = 150;
-	player->color.a = 255;
   /***********************/
   
   pack->id = 3;
   pack->player = *player;
   
   //Send initial connection with Player info
-  sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ip, sizeof(ip));
+  sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
   
+  //Get player info back
+  memset(buffer, 0, 512);
+  recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ip, &size);
+  Package* pack_in = new Package();
+  memcpy(pack_in, buffer, sizeof(Package));
+  
+  player->id = pack_in->player.id;
+  player->ip = pack_in->player.ip;
+  player->color.r = pack_in->player.color.r;
+	player->color.g = pack_in->player.color.g;
+	player->color.b = pack_in->player.color.b;
+	player->color.a = pack_in->player.color.a;
+  
+  printf("pack_in id: %d\n", pack_in->id);
+  printf("My id is: %s\n", player->id);
   
   while(ESAT::WindowIsOpened() && !ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Escape)) {
   
@@ -73,19 +88,19 @@ int ESAT::main(int argc, char** argv) {
 	Package* pack = new Package();
 		
 	if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Up)) {
-		pack->direction = UP;
+		pack->movement.direction = UP;
 		send = true;
 		printf("arriba\n");
 	} else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Right)) {
-		pack->direction = RIGHT;
+		pack->movement.direction = RIGHT;
 		send = true;
 		printf("derecha\n");
 	} else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Down)) {
-		pack->direction = DOWN;
+		pack->movement.direction = DOWN;
 		send = true;
 		printf("abajo\n");
 	} else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Left)) {
-		pack->direction = LEFT;
+		pack->movement.direction = LEFT;
 		send = true;
 		printf("izquierda\n");
 	}
@@ -95,7 +110,8 @@ int ESAT::main(int argc, char** argv) {
   if (send) {
     printf("sending\n");
     pack->id = 1;
-    sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ip, sizeof(ip));
+    pack->movement.player_id = player->id;
+    sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
   }
   send = false;
   delete pack;

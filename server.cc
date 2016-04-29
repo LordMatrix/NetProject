@@ -82,26 +82,32 @@ int main(int argc, char** argv) {
     FD_SET(sock, &SOCK_IN);
     select(g_num_clients, &SOCK_IN, NULL, NULL, &time);
     if (FD_ISSET(sock, &SOCK_IN)) {
-      if (recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
-        printf("Entering main branch\n");
-        Package* pack = new Package();
-        memcpy(pack, buffer, sizeof(Package));
-        printf("pack id:  %d\n", pack->id);
-        printf("%s\n", buffer);
-        switch (pack->id) {
+      if (recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ipc, &size)) {
+        
+        Package* pack_in = new Package();
+        Package* pack_out = new Package();
+        memcpy(pack_in, buffer, sizeof(Package));
+        
+        switch (pack_in->id) {
           case 1:
             //Direction
-            printf("Direction is:%d\n",pack->direction);
-            printf("\nClientes conectados:%d\n", g_num_clients);
+            printf("Direction is:%d\n",pack_in->movement.direction);
             break;
           case 2:
             //GameState
             break;
           case 3:
             //Player
-            printf("\nNueva conexion");
+            printf("\nNueva conexion en case 3\n");
             createPlayer();
+            
+            //Send player info back
+            pack_out->id = 5;
+            pack_out->player = *g_players[g_num_clients - 1];
+            printf("New player id is:  %d", pack_out->player.id);
+            sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc, sizeof(ipc));
             printf("\nClientes conectados:%d\n", g_num_clients);
+            
             break;
           default:
             //ERROR
@@ -109,7 +115,7 @@ int main(int argc, char** argv) {
         }
         
         
-        delete pack;
+        delete pack_in;
       } else {
         printf("It went the other way\n");
       }

@@ -1,6 +1,11 @@
 enum Direction { NONE, UP, RIGHT, DOWN, LEFT };
 
 typedef struct {
+  int player_id;
+  Direction direction;
+} Movement;
+
+typedef struct {
 	float x,y;
 } Point2;
 
@@ -27,7 +32,7 @@ typedef struct {
 
 typedef struct {
   int id; //type of package
-  union { Direction direction; GameState gamestate; Player player; }; 
+  union { Movement movement; GameState gamestate; Player player; }; 
 } Package;
 //id = 0 -> ERROR
 //id = 1 -> Direction
