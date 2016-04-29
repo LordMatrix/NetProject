@@ -103,8 +103,8 @@ int main(int argc, char** argv) {
             
             //Send player info back
             pack_out->id = 5;
-            pack_out->player = *g_players[g_num_clients - 1];
-            printf("New player id is:  %d", pack_out->player.id);
+            pack_out->player.id = g_players[g_num_clients - 1]->id;
+            printf("New player id is:  %d", *g_players[g_num_clients - 1]);
             sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc, sizeof(ipc));
             printf("\nClientes conectados:%d\n", g_num_clients);
             

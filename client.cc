@@ -68,7 +68,7 @@ int ESAT::main(int argc, char** argv) {
   memset(buffer, 0, 512);
   recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ip, &size);
   Package* pack_in = new Package();
-  memcpy(pack_in, buffer, sizeof(Package));
+  memcpy(pack_in, buffer, 512);
   
   player->id = pack_in->player.id;
   player->ip = pack_in->player.ip;
@@ -78,7 +78,7 @@ int ESAT::main(int argc, char** argv) {
 	player->color.a = pack_in->player.color.a;
   
   printf("pack_in id: %d\n", pack_in->id);
-  printf("My id is: %s\n", player->id);
+  printf("My id is: %d\n", player->id);
   
   while(ESAT::WindowIsOpened() && !ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Escape)) {
   
