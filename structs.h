@@ -20,19 +20,19 @@ typedef struct {
   int id;
   int ip;
   char name[50];
-  int x, y;
+  Point2 position;
   Color color;
   Direction direction;
 } Player;
 
 typedef struct {
   int num_players;
-  Player players[64];
-} GameState;
+  Player players[10];
+} GameStatus;
 
 typedef struct {
   int id; //type of package
-  union { Movement movement; GameState gamestate; Player player; }; 
+  union { Movement movement; GameStatus gamestatus; Player player; }; 
 } Package;
 //id = 0 -> ERROR
 //id = 1 -> Direction

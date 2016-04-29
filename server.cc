@@ -21,16 +21,16 @@ void move(int player_id, Direction direction) {
   //Update positions
   switch (direction) {
     case UP:
-      g_players[player_id]->y--;
+      g_players[player_id]->position.y--;
       break;
     case RIGHT:
-      g_players[player_id]->x++;
+      g_players[player_id]->position.x++;
       break;
     case DOWN:
-      g_players[player_id]->y++;
+      g_players[player_id]->position.y++;
       break;
     case LEFT:
-      g_players[player_id]->x--;
+      g_players[player_id]->position.x--;
       break;
     case NONE:
     default:
@@ -42,10 +42,10 @@ void move(int player_id, Direction direction) {
 void createPlayer() {
 	Player* player = new Player();
 	player->id = g_num_clients;
-	player->x = 0;
-	player->y = 0;
+	player->position.x = 0;
+	player->position.y = 0;
 	
-	player->color.r = 100;
+	player->color.r = 42;
 	player->color.g = 100;
 	player->color.b = 100;
 	player->color.a = 255;
@@ -74,6 +74,7 @@ int main(int argc, char** argv) {
   time.tv_sec=1;
   time.tv_usec=0;
   
+  Package* pack_out = new Package();
   
   while (1) {
     memset(buffer, 0, 512);
@@ -83,7 +84,6 @@ int main(int argc, char** argv) {
       if (recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
         
         Package* pack_in = new Package();
-        Package* pack_out = new Package();
         memcpy(pack_in, buffer, sizeof(Package));
         
         switch (pack_in->id) {
@@ -124,7 +124,13 @@ int main(int argc, char** argv) {
     }
     
     //Send game status
+    memset(pack_out, 0, sizeof(Package));
+    pack_out->gamestatus.num_players = g_num_clients;
     
+    for (int i=0; i<g_num_clients; i++) {
+      pack_out->gamestatus.players[i] = *g_players[i];
+      sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[i], sizeof(ipc[i]));
+    }
   }
   
   return 0;

@@ -118,7 +118,16 @@ int ESAT::main(int argc, char** argv) {
 	
   
   //Receive game status
+  memset(buffer, 0, 512);
+  memset (pack_in, 0, sizeof(Package));
+  recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ip, &size);
+  memcpy(pack_in, buffer, 512);
   
+  GameStatus status = pack_in->gamestatus;
+  
+  for (int i=0; i<status.num_players; i++) {
+    drawCube(50, status.players[i].color, status.players[i].position);
+  }
   
   
 	//Draw status
