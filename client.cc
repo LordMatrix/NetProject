@@ -26,9 +26,10 @@ void drawCube(int size, Color color, Point2 position) {
 
 int ESAT::main(int argc, char** argv) {
   
-  
+  struct timeval time;
   WSAData wsa;
   SOCKET sock, socks;
+  fd_set SOCK_IN;
   struct sockaddr_in ip, ips;
   char buffer[512];
   int size=sizeof(ip);
@@ -38,6 +39,9 @@ int ESAT::main(int argc, char** argv) {
   ip.sin_port=htons(8888);
   ip.sin_addr.s_addr=inet_addr("127.0.0.1");
 	bind(sock, (SOCKADDR*)&ip, sizeof(ip));
+  FD_ZERO(&SOCK_IN);
+  time.tv_sec=0;
+  time.tv_usec=g_refresh_time;
   
   socks = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   ips.sin_family=AF_INET;
@@ -90,25 +94,20 @@ int ESAT::main(int argc, char** argv) {
 	if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Up)) {
 		pack->movement.direction = UP;
 		send = true;
-		printf("arriba\n");
 	} else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Right)) {
 		pack->movement.direction = RIGHT;
 		send = true;
-		printf("derecha\n");
 	} else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Down)) {
 		pack->movement.direction = DOWN;
 		send = true;
-		printf("abajo\n");
 	} else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Left)) {
 		pack->movement.direction = LEFT;
 		send = true;
-		printf("izquierda\n");
 	}
 	
 	
 	//Send Package struct with direction
   if (send) {
-    printf("sending\n");
     pack->id = 1;
     pack->movement.player_id = player->id;
     sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
@@ -119,15 +118,24 @@ int ESAT::main(int argc, char** argv) {
   
   //Receive game status
   memset(buffer, 0, 512);
-  memset (pack_in, 0, sizeof(Package));
-  recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ip, &size);
-  memcpy(pack_in, buffer, 512);
+  FD_SET(sock, &SOCK_IN);
+  select(1, &SOCK_IN, NULL, NULL, &time);
   
-  GameStatus status = pack_in->gamestatus;
-  
-  for (int i=0; i<status.num_players; i++) {
-    drawCube(50, status.players[i].color, status.players[i].position);
+  if (FD_ISSET(sock, &SOCK_IN)) {
+    if (recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ip, &size)) {
+      
+      memset (pack_in, 0, sizeof(Package));
+      memcpy(pack_in, buffer, 512);
+      
+      GameStatus status = pack_in->gamestatus;
+      
+      for (int i=0; i<status.num_players; i++) {
+        printf("Player %d position: %f,%f\n",i,status.players[i].position.x, status.players[i].position.y);
+        drawCube(25, status.players[i].color, status.players[i].position);
+      }
+    }
   }
+  
   
   
 	//Draw status

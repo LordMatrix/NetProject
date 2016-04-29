@@ -38,3 +38,5 @@ typedef struct {
 //id = 1 -> Direction
 //id = 2 -> GameState
 //id = 3 -> Player
+
+int g_refresh_time = 50;

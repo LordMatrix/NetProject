@@ -21,16 +21,16 @@ void move(int player_id, Direction direction) {
   //Update positions
   switch (direction) {
     case UP:
-      g_players[player_id]->position.y--;
+      g_players[player_id]->position.y-=10;
       break;
     case RIGHT:
-      g_players[player_id]->position.x++;
+      g_players[player_id]->position.x+=10;
       break;
     case DOWN:
-      g_players[player_id]->position.y++;
+      g_players[player_id]->position.y+=10;
       break;
     case LEFT:
-      g_players[player_id]->position.x--;
+      g_players[player_id]->position.x-=10;
       break;
     case NONE:
     default:
@@ -44,11 +44,26 @@ void createPlayer() {
 	player->id = g_num_clients;
 	player->position.x = 0;
 	player->position.y = 0;
-	
-	player->color.r = 42;
-	player->color.g = 100;
-	player->color.b = 100;
-	player->color.a = 255;
+  
+  Color color;
+  switch (g_num_clients) {
+    case 0:
+      color = {255,0,0,255};
+      break;
+    case 1:
+      color = {0,255,0,255};
+      break;
+    case 2:
+      color = {0,0,255,255};
+      break;
+    case 3:
+      color = {255,255,0,255};
+      break;
+    default:
+      break;
+  }
+  
+  player->color = color;
 	
 	g_players[g_num_clients] = player;
 	g_num_clients++;
@@ -71,8 +86,8 @@ int main(int argc, char** argv) {
   ip.sin_addr.s_addr=inet_addr("127.0.0.1");
   bind(sock, (SOCKADDR*)&ip, sizeof(ip));
   FD_ZERO(&SOCK_IN);
-  time.tv_sec=1;
-  time.tv_usec=0;
+  time.tv_sec=0;
+  time.tv_usec= g_refresh_time;
   
   Package* pack_out = new Package();
   
@@ -126,9 +141,13 @@ int main(int argc, char** argv) {
     //Send game status
     memset(pack_out, 0, sizeof(Package));
     pack_out->gamestatus.num_players = g_num_clients;
-    
+    //Copy all player data to package_out
     for (int i=0; i<g_num_clients; i++) {
       pack_out->gamestatus.players[i] = *g_players[i];
+    }
+    
+    //Send data to all players
+    for (int i=0; i<g_num_clients; i++) {
       sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[i], sizeof(ipc[i]));
     }
   }
