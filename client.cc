@@ -116,6 +116,11 @@ int ESAT::main(int argc, char** argv) {
   send = false;
   delete pack;
 	
+  
+  //Receive game status
+  
+  
+  
 	//Draw status
 	ESAT::DrawSetStrokeColor(0,0,0);
 	ESAT::DrawSetFillColor(0,0,0);

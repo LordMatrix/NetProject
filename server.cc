@@ -17,26 +17,24 @@ int g_map_width;
 int g_map_height;
 
 
-void update() {
+void move(int player_id, Direction direction) {
   //Update positions
-  for (int i=0; i<g_num_clients; i++) {
-    switch (g_players[i]->direction) {
-      case UP:
-        g_players[i]->y--;
-        break;
-      case RIGHT:
-        g_players[i]->x++;
-        break;
-      case DOWN:
-        g_players[i]->y++;
-        break;
-      case LEFT:
-        g_players[i]->x--;
-        break;
-      case NONE:
-      default:
-        break;
-    }
+  switch (direction) {
+    case UP:
+      g_players[player_id]->y--;
+      break;
+    case RIGHT:
+      g_players[player_id]->x++;
+      break;
+    case DOWN:
+      g_players[player_id]->y++;
+      break;
+    case LEFT:
+      g_players[player_id]->x--;
+      break;
+    case NONE:
+    default:
+      break;
   }
 }
 
@@ -82,7 +80,7 @@ int main(int argc, char** argv) {
     FD_SET(sock, &SOCK_IN);
     select(g_num_clients, &SOCK_IN, NULL, NULL, &time);
     if (FD_ISSET(sock, &SOCK_IN)) {
-      if (recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ipc, &size)) {
+      if (recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
         
         Package* pack_in = new Package();
         Package* pack_out = new Package();
@@ -91,7 +89,9 @@ int main(int argc, char** argv) {
         switch (pack_in->id) {
           case 1:
             //Direction
+            printf("Player %d is moving\n", pack_in->movement.player_id);
             printf("Direction is:%d\n",pack_in->movement.direction);
+            move(pack_in->movement.player_id, pack_in->movement.direction);
             break;
           case 2:
             //GameState
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
             pack_out->id = 5;
             pack_out->player.id = g_players[g_num_clients - 1]->id;
             printf("New player id is:  %d", *g_players[g_num_clients - 1]);
-            sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc, sizeof(ipc));
+            sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[g_num_clients - 1], sizeof(ipc[g_num_clients - 1]));
             printf("\nClientes conectados:%d\n", g_num_clients);
             
             break;
@@ -122,6 +122,9 @@ int main(int argc, char** argv) {
     } else {
       printf("\nTimeout\n");
     }
+    
+    //Send game status
+    
   }
   
   return 0;
