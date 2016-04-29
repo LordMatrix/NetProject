@@ -21,16 +21,20 @@ void move(int player_id, Direction direction) {
   //Update positions
   switch (direction) {
     case UP:
-      g_players[player_id]->position.y-=10;
+      if (g_players[player_id]->position.y > 0)
+        g_players[player_id]->position.y -= 10;
       break;
     case RIGHT:
-      g_players[player_id]->position.x+=10;
+      if (g_players[player_id]->position.x < g_win_width)
+        g_players[player_id]->position.x += 10;
       break;
     case DOWN:
-      g_players[player_id]->position.y+=10;
+      if (g_players[player_id]->position.y < g_win_height)
+        g_players[player_id]->position.y+=10;
       break;
     case LEFT:
-      g_players[player_id]->position.x-=10;
+      if (g_players[player_id]->position.x > 0)
+        g_players[player_id]->position.x -= 10;
       break;
     case NONE:
     default:

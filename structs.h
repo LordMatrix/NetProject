@@ -41,3 +41,6 @@ typedef struct {
 //id = 4 -> Disconnection
 
 int g_refresh_time = 50;
+
+int g_win_width = 800;
+int g_win_height = 600;

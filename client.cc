@@ -48,7 +48,7 @@ int ESAT::main(int argc, char** argv) {
   ips.sin_port=htons(9999);
   ips.sin_addr.s_addr=inet_addr("127.0.0.1");
   
-  ESAT::WindowInit(800, 600);
+  ESAT::WindowInit(g_win_width, g_win_height);
   ESAT::DrawSetTextFont("assets/font/medieval.ttf");
   
   Player* player = new Player();
