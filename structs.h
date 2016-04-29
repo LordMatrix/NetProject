@@ -38,5 +38,6 @@ typedef struct {
 //id = 1 -> Direction
 //id = 2 -> GameState
 //id = 3 -> Player
+//id = 4 -> Disconnection
 
 int g_refresh_time = 50;

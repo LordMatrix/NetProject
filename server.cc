@@ -60,6 +60,7 @@ void createPlayer() {
       color = {255,255,0,255};
       break;
     default:
+      color = {0,0,0,255};
       break;
   }
   
@@ -67,6 +68,13 @@ void createPlayer() {
 	
 	g_players[g_num_clients] = player;
 	g_num_clients++;
+}
+
+
+void removePlayer(int id) {
+  printf("Client disconnected: %d\n", id);
+  delete g_players[id];
+  g_players[id] = nullptr;
 }
 
 
@@ -124,6 +132,10 @@ int main(int argc, char** argv) {
             printf("\nClientes conectados:%d\n", g_num_clients);
             
             break;
+          case 4:
+            //Disconnection
+            removePlayer(pack_in->player.id);
+            break;
           default:
             //ERROR
             break;
@@ -143,7 +155,8 @@ int main(int argc, char** argv) {
     pack_out->gamestatus.num_players = g_num_clients;
     //Copy all player data to package_out
     for (int i=0; i<g_num_clients; i++) {
-      pack_out->gamestatus.players[i] = *g_players[i];
+      if (g_players[i] != nullptr)
+        pack_out->gamestatus.players[i] = *g_players[i];
     }
     
     //Send data to all players

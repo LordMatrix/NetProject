@@ -48,7 +48,7 @@ int ESAT::main(int argc, char** argv) {
   ips.sin_port=htons(9999);
   ips.sin_addr.s_addr=inet_addr("127.0.0.1");
   
-  ESAT::WindowInit(1366, 768);
+  ESAT::WindowInit(800, 600);
   ESAT::DrawSetTextFont("assets/font/medieval.ttf");
   
   Player* player = new Player();
@@ -91,16 +91,16 @@ int ESAT::main(int argc, char** argv) {
 	
 	Package* pack = new Package();
 		
-	if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Up)) {
+	if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Up)) {
 		pack->movement.direction = UP;
 		send = true;
-	} else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Right)) {
+	} else if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Right)) {
 		pack->movement.direction = RIGHT;
 		send = true;
-	} else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Down)) {
+	} else if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Down)) {
 		pack->movement.direction = DOWN;
 		send = true;
-	} else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Left)) {
+	} else if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Left)) {
 		pack->movement.direction = LEFT;
 		send = true;
 	}
@@ -147,6 +147,14 @@ int ESAT::main(int argc, char** argv) {
 	ESAT::WindowFrame();
   
   }
+  
+  //Send disconnection signal
+  memset (pack, 0, sizeof(Package));
+  pack->id = 4;
+  pack->player = *player;
+  
+  //Send initial connection with Player info
+  sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
   
   ESAT::WindowDestroy();
   return 0;
