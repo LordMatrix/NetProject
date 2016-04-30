@@ -12,6 +12,7 @@ int g_board[8][8];
 
 Player* g_players[10];
 int g_num_clients=0;
+int g_max_clients=4;
 
 int g_map_width;
 int g_map_height;
@@ -45,35 +46,41 @@ void move(int player_id, Direction direction) {
 }
 
 
-void createPlayer() {
-	Player* player = new Player();
-	player->id = g_num_clients;
-	player->position.x = 0;
-	player->position.y = 0;
-  
-  Color color;
-  switch (g_num_clients) {
-    case 0:
-      color = {255,0,0,255};
-      break;
-    case 1:
-      color = {0,255,0,255};
-      break;
-    case 2:
-      color = {0,0,255,255};
-      break;
-    case 3:
-      color = {255,255,0,255};
-      break;
-    default:
-      color = {0,0,0,255};
-      break;
+bool createPlayer() {
+  if (g_num_clients < g_max_clients) {
+    Player* player = new Player();
+    player->id = g_num_clients;
+    player->position.x = 0;
+    player->position.y = 0;
+    
+    Color color;
+    switch (g_num_clients) {
+      case 0:
+        color = {255,0,0,255};
+        break;
+      case 1:
+        color = {0,255,0,255};
+        break;
+      case 2:
+        color = {0,0,255,255};
+        break;
+      case 3:
+        color = {255,255,0,255};
+        break;
+      default:
+        color = {0,0,0,255};
+        break;
+    }
+    
+    player->color = color;
+    
+    g_players[g_num_clients] = player;
+
+    g_num_clients++;
+    return true;
+  } else {
+    return false;
   }
-  
-  player->color = color;
-	
-	g_players[g_num_clients] = player;
-	g_num_clients++;
 }
 
 
@@ -125,14 +132,17 @@ int main(int argc, char** argv) {
             break;
           case 3:
             //Player
-            createPlayer();
-            
-            //Send player info back
-            pack_out->id = 5;
-            pack_out->player.id = g_players[g_num_clients - 1]->id;
-            printf("New player id is:  %d\n", *g_players[g_num_clients - 1]);
-            sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[g_num_clients - 1], sizeof(ipc[g_num_clients - 1]));
-            
+            if (createPlayer())  {            
+              //Send player info back
+              pack_out->id = 3;
+              pack_out->player.id = g_players[g_num_clients - 1]->id;
+              printf("New player id is:  %d\n", *g_players[g_num_clients - 1]);
+              sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[g_num_clients - 1], sizeof(ipc[g_num_clients - 1]));
+            } else {
+              pack_out->id = 0;
+              sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[g_num_clients - 1], sizeof(ipc[g_num_clients - 1]));
+              printf("Max players reached.Connection refused.\n");
+            }
             break;
           case 4:
             //Disconnection
@@ -149,7 +159,7 @@ int main(int argc, char** argv) {
     }
     
     //Send game status
-    memset(pack_out, 0, sizeof(Package));
+    memset(pack_out, 3, sizeof(Package));
     pack_out->gamestatus.num_players = g_num_clients;
     //Copy all player data to package_out
     for (int i=0; i<g_num_clients; i++) {

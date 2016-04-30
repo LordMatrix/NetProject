@@ -55,6 +55,8 @@ int ESAT::main(int argc, char** argv) {
   Package* pack = new Package();
   
   bool send = false;
+  bool exit = false;
+  bool disconnect_quietly = false;
   
   //Set placeholder player info
   /**** Placeholders *****/
@@ -73,15 +75,26 @@ int ESAT::main(int argc, char** argv) {
   recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ip, &size);
   Package* pack_in = new Package();
   memcpy(pack_in, buffer, 512);
+  printf("PACKIN   %d\n",pack_in->id);
+  if (pack_in->id) {
+    player->id = pack_in->player.id;
+    player->ip = pack_in->player.ip;
+    player->color.r = pack_in->player.color.r;
+    player->color.g = pack_in->player.color.g;
+    player->color.b = pack_in->player.color.b;
+    player->color.a = pack_in->player.color.a;
+  } else {
+    printf("Max players reached.Connection refused.\n");
+    exit = true;
+    disconnect_quietly = true;
+  }
   
-  player->id = pack_in->player.id;
-  player->ip = pack_in->player.ip;
-  player->color.r = pack_in->player.color.r;
-	player->color.g = pack_in->player.color.g;
-	player->color.b = pack_in->player.color.b;
-	player->color.a = pack_in->player.color.a;
   
-  while(ESAT::WindowIsOpened() && !ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Escape)) {
+  while(ESAT::WindowIsOpened() && !exit) {
+  
+  
+  if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Escape))
+    exit = true;
   
 	ESAT::DrawBegin();
 	ESAT::DrawClear(255,255,255);
@@ -144,12 +157,14 @@ int ESAT::main(int argc, char** argv) {
   }
   
   //Send disconnection signal
-  memset (pack, 0, sizeof(Package));
-  pack->id = 4;
-  pack->player = *player;
-  
-  //Send initial connection with Player info
-  sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
+  if (!disconnect_quietly) {
+    memset (pack, 0, sizeof(Package));
+    pack->id = 4;
+    pack->player = *player;
+    
+    //Send initial connection with Player info
+    sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
+  }
   
   ESAT::WindowDestroy();
   return 0;
