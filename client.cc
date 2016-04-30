@@ -81,9 +81,6 @@ int ESAT::main(int argc, char** argv) {
 	player->color.b = pack_in->player.color.b;
 	player->color.a = pack_in->player.color.a;
   
-  printf("pack_in id: %d\n", pack_in->id);
-  printf("My id is: %d\n", player->id);
-  
   while(ESAT::WindowIsOpened() && !ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Escape)) {
   
 	ESAT::DrawBegin();
@@ -130,7 +127,6 @@ int ESAT::main(int argc, char** argv) {
       GameStatus status = pack_in->gamestatus;
       
       for (int i=0; i<status.num_players; i++) {
-        printf("Player %d position: %f,%f\n",i,status.players[i].position.x, status.players[i].position.y);
         drawCube(25, status.players[i].color, status.players[i].position);
       }
     }
@@ -141,7 +137,6 @@ int ESAT::main(int argc, char** argv) {
 	//Draw status
 	ESAT::DrawSetStrokeColor(0,0,0);
 	ESAT::DrawSetFillColor(0,0,0);
-	ESAT::DrawText(100.0f, 100.0f, "ola k ase");
 	
 	ESAT::DrawEnd();
 	ESAT::WindowFrame();

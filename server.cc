@@ -18,23 +18,25 @@ int g_map_height;
 
 
 void move(int player_id, Direction direction) {
+  float speed = 0.1f;
+  
   //Update positions
   switch (direction) {
     case UP:
       if (g_players[player_id]->position.y > 0)
-        g_players[player_id]->position.y -= 10;
+        g_players[player_id]->position.y -= speed;
       break;
     case RIGHT:
       if (g_players[player_id]->position.x < g_win_width)
-        g_players[player_id]->position.x += 10;
+        g_players[player_id]->position.x += speed;
       break;
     case DOWN:
       if (g_players[player_id]->position.y < g_win_height)
-        g_players[player_id]->position.y+=10;
+        g_players[player_id]->position.y += speed;
       break;
     case LEFT:
       if (g_players[player_id]->position.x > 0)
-        g_players[player_id]->position.x -= 10;
+        g_players[player_id]->position.x -= speed;
       break;
     case NONE:
     default:
@@ -116,8 +118,6 @@ int main(int argc, char** argv) {
         switch (pack_in->id) {
           case 1:
             //Direction
-            printf("Player %d is moving\n", pack_in->movement.player_id);
-            printf("Direction is:%d\n",pack_in->movement.direction);
             move(pack_in->movement.player_id, pack_in->movement.direction);
             break;
           case 2:
@@ -125,15 +125,13 @@ int main(int argc, char** argv) {
             break;
           case 3:
             //Player
-            printf("\nNueva conexion en case 3\n");
             createPlayer();
             
             //Send player info back
             pack_out->id = 5;
             pack_out->player.id = g_players[g_num_clients - 1]->id;
-            printf("New player id is:  %d", *g_players[g_num_clients - 1]);
+            printf("New player id is:  %d\n", *g_players[g_num_clients - 1]);
             sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[g_num_clients - 1], sizeof(ipc[g_num_clients - 1]));
-            printf("\nClientes conectados:%d\n", g_num_clients);
             
             break;
           case 4:
@@ -147,11 +145,7 @@ int main(int argc, char** argv) {
         
         
         delete pack_in;
-      } else {
-        printf("It went the other way\n");
       }
-    } else {
-      printf("\nTimeout\n");
     }
     
     //Send game status
