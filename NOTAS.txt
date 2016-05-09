@@ -1,0 +1,8 @@
+CubeballZ
+---------------
+
+Players have a limited amount of health
+
+When players crash, they damage each other and get pushed back.
+Players can shoot energy beams. The longer they hold a button, the bigger the beam will be and the more damage it will inflict.
+Players can block and get no damage or reduced damage.

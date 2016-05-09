@@ -5,6 +5,8 @@
 #include "stdio.h"
 #include "winsock2.h"
 
+#include <string>
+
 #include "ESAT/window.h"
 #include "ESAT/draw.h"
 #include "ESAT/input.h"
@@ -48,7 +50,7 @@ int ESAT::main(int argc, char** argv) {
   ips.sin_port=htons(9999);
   ips.sin_addr.s_addr=inet_addr("127.0.0.1");
   
-  ESAT::WindowInit(g_win_width, g_win_height);
+  ESAT::WindowInit(kWinWidth, kWinHeight);
   ESAT::DrawSetTextFont("assets/font/medieval.ttf");
   
   Player* player = new Player();
@@ -58,12 +60,7 @@ int ESAT::main(int argc, char** argv) {
   bool exit = false;
   bool disconnect_quietly = false;
   
-  //Set placeholder player info
-  /**** Placeholders *****/
-  //player->name = "player";
-	
-  /***********************/
-  
+  //Set placeholder player info  
   pack->id = 3;
   pack->player = *player;
   
@@ -91,7 +88,6 @@ int ESAT::main(int argc, char** argv) {
   
   
   while(ESAT::WindowIsOpened() && !exit) {
-  
   
   if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Escape))
     exit = true;
@@ -140,7 +136,30 @@ int ESAT::main(int argc, char** argv) {
       GameStatus status = pack_in->gamestatus;
       
       for (int i=0; i<status.num_players; i++) {
-        drawCube(25, status.players[i].color, status.players[i].position);
+        drawCube(g_player_size/2, status.players[i].color, status.players[i].position);
+        
+        //Draw player info
+        int x,y;
+        switch (status.players[i].id) {
+          case 0:
+            x = 0;
+            y= 20;
+            break;
+          case 1:
+            x = kWinWidth - 100;
+            y = 20;
+            break;
+          case 2:
+            x = 0;
+            y = kWinHeight - 60;
+            break;
+          case 3:
+            x = kWinWidth - 100;
+            y = kWinHeight - 60;
+            break;
+        }
+        ESAT::DrawText(x, y, status.players[i].name);
+        ESAT::DrawText(x, y + 20.0f, std::to_string(status.players[i].health).c_str());
       }
     }
   }

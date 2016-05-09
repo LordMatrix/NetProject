@@ -22,11 +22,10 @@ bool checkCollisions(Player* player) {
   bool collided = false;
   
   //check player collisions
-  int size = 50;
   for (int i=0; i<g_num_clients && ! collided; i++) {
     if (player->id != i) {
-      if ( (player->position.x + size > g_players[i]->position.x && player->position.x < g_players[i]->position.x + size) 
-        && (player->position.y + size > g_players[i]->position.y && player->position.y < g_players[i]->position.y + size))
+      if ( (player->position.x + g_player_size > g_players[i]->position.x && player->position.x < g_players[i]->position.x + g_player_size) 
+        && (player->position.y + g_player_size > g_players[i]->position.y && player->position.y < g_players[i]->position.y + g_player_size))
       
         collided = true;
     }
@@ -37,27 +36,25 @@ bool checkCollisions(Player* player) {
 
 
 void move(int player_id, Direction direction) {
-  float speed = 2.0f;
-
   Point2 prev = g_players[player_id]->position;
   
   //Update positions
   switch (direction) {
     case UP:
       if (g_players[player_id]->position.y > 0)
-        g_players[player_id]->position.y -= speed;
+        g_players[player_id]->position.y -= g_speed;
       break;
     case RIGHT:
-      if (g_players[player_id]->position.x < g_win_width)
-        g_players[player_id]->position.x += speed;
+      if (g_players[player_id]->position.x < kWinWidth)
+        g_players[player_id]->position.x += g_speed;
       break;
     case DOWN:
-      if (g_players[player_id]->position.y < g_win_height)
-        g_players[player_id]->position.y += speed;
+      if (g_players[player_id]->position.y < kWinHeight)
+        g_players[player_id]->position.y += g_speed;
       break;
     case LEFT:
       if (g_players[player_id]->position.x > 0)
-        g_players[player_id]->position.x -= speed;
+        g_players[player_id]->position.x -= g_speed;
       break;
     case NONE:
     default:
@@ -73,22 +70,33 @@ bool createPlayer() {
   if (g_num_clients < g_max_clients) {
     Player* player = new Player();
     player->id = g_num_clients;
-    player->position.x = 0;
-    player->position.y = 0;
+    player->health = 1000.0f;
     
     Color color;
     switch (g_num_clients) {
       case 0:
         color = {255,0,0,255};
+        player->position.x = g_player_size;
+        player->position.y = g_player_size;
+        memcpy(player->name,"DOGE", 15);
         break;
       case 1:
         color = {0,255,0,255};
+        player->position.x = kWinWidth - g_player_size;
+        player->position.y = g_player_size;
+        memcpy(player->name,"LONGCAT", 15);
         break;
       case 2:
         color = {0,0,255,255};
+        player->position.x = g_player_size;
+        player->position.y = kWinHeight - g_player_size;
+        memcpy(player->name,"SMIUCH", 15);
         break;
       case 3:
         color = {255,255,0,255};
+        player->position.x = kWinWidth - g_player_size;
+        player->position.y = kWinHeight - g_player_size;
+        memcpy(player->name,"LITTLEMARMOT", 15);
         break;
       default:
         color = {0,0,0,255};

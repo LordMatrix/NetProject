@@ -23,6 +23,7 @@ typedef struct {
   Point2 position;
   Color color;
   Direction direction;
+  float health;
 } Player;
 
 typedef struct {
@@ -42,5 +43,8 @@ typedef struct {
 
 int g_refresh_time = 50;
 
-int g_win_width = 800;
-int g_win_height = 600;
+const int kWinWidth = 800;
+const int kWinHeight = 600;
+
+float g_speed = 5.0f;
+float g_player_size = 20.0f;
