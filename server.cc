@@ -18,8 +18,28 @@ int g_map_width;
 int g_map_height;
 
 
+bool checkCollisions(Player* player) {
+  bool collided = false;
+  
+  //check player collisions
+  int size = 50;
+  for (int i=0; i<g_num_clients && ! collided; i++) {
+    if (player->id != i) {
+      if ( (player->position.x + size > g_players[i]->position.x && player->position.x < g_players[i]->position.x + size) 
+        && (player->position.y + size > g_players[i]->position.y && player->position.y < g_players[i]->position.y + size))
+      
+        collided = true;
+    }
+  }
+  
+  return collided;
+}
+
+
 void move(int player_id, Direction direction) {
-  float speed = 0.1f;
+  float speed = 2.0f;
+
+  Point2 prev = g_players[player_id]->position;
   
   //Update positions
   switch (direction) {
@@ -43,6 +63,9 @@ void move(int player_id, Direction direction) {
     default:
       break;
   }
+  
+  if (checkCollisions(g_players[player_id]))
+    g_players[player_id]->position = prev;
 }
 
 
