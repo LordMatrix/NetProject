@@ -121,6 +121,7 @@ void move(int player_id, Direction direction) {
 
 
 bool createPlayer() {
+
   if (g_num_clients < g_max_clients) {
     Player* player = new Player();
     player->id = g_num_clients;
@@ -234,6 +235,7 @@ void removePlayer(int id) {
   printf("Client %d disconnected from : %s\n", id, inet_ntoa(g_players[id]->ip));
   delete g_players[id];
   g_players[id] = nullptr;
+  g_num_clients--;
 }
 
 
@@ -282,7 +284,7 @@ int main(int argc, char** argv) {
             break;
           case 3:
             //Player
-            if (createPlayer())  {   
+            if (createPlayer())  {
               g_players[g_num_clients - 1]->ip = ipc[g_num_clients - 1].sin_addr;
             
               //Send player info back
@@ -291,7 +293,7 @@ int main(int argc, char** argv) {
               printf("New player with id %d connected from %s\n", g_players[g_num_clients - 1]->id, inet_ntoa(g_players[g_num_clients - 1]->ip));
               sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[g_num_clients - 1], sizeof(ipc[g_num_clients - 1]));
             } else {
-              pack_out->id = 0;
+              pack_out->id = 8;
               sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[g_num_clients - 1], sizeof(ipc[g_num_clients - 1]));
               printf("Max players reached.Connection refused.\n");
             }
