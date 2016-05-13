@@ -18,8 +18,9 @@ void drawCube(int size, Color color, Point2 position) {
   float x = position.x;
   float y = position.y;
   
-  //Create sube points
-  float pathpoints[10] = {-size+x,size+y, size+x,size+y, size+x,-size+y, -size+x,-size+y, -size+x,size+y};
+  //Create cube points
+  //float pathpoints[10] = {-size+x,size+y, size+x,size+y, size+x,-size+y, -size+x,-size+y, -size+x,size+y};
+  float pathpoints[10] = {x,y, x+size,y, x+size,y+size, x,y+size, x,y};
   
   ESAT::DrawSetStrokeColor(color.r,color.g,color.b,color.a);
   ESAT::DrawSetFillColor(color.r,color.g,color.b,color.a);
@@ -168,7 +169,6 @@ int ESAT::main(int argc, char** argv) {
       }
       
       for (int i=0; i<status.num_shots; i++) {
-        //printf("%f, %f\n",status.shots[i].position.x,status.shots[i].position.y);
         drawCube(g_shot_size, status.players[status.shots[i].player_id].color, status.shots[i].position);
       }
     }

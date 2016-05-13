@@ -59,5 +59,5 @@ float g_player_speed = 5.0f;
 float g_shot_speed = 1.5f;
 float g_strength = 10.0f;
 
-float g_player_size = 20.0f;
-float g_shot_size = 5.0f;
+float g_player_size = 60.0f;
+float g_shot_size = 10.0f;

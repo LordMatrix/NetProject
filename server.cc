@@ -174,8 +174,6 @@ void createShot(Player* player) {
   
   shot->player_id = player->id;
   shot->position = player->position;
-  printf("SHOTPOS :  %f,%f",shot->position.x,shot->position.y);
-  
   
   switch (player->direction) {
     case 1:
@@ -228,9 +226,6 @@ void moveShot(Shot* shot) {
       || shot->position.y > kWinHeight || shot->position.x < 0) {
 
     destroyShot(shot);
-  } else {
-    
-    
   }
 }
 
@@ -279,7 +274,6 @@ int main(int argc, char** argv) {
             move(pack_in->movement.player_id, pack_in->movement.direction);
             
             if (pack_in->movement.shooting) {
-              printf("player is shooting : %d\n", g_num_shots);
               createShot(g_players[pack_in->movement.player_id]);
             }
             break;
