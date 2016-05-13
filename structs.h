@@ -19,7 +19,7 @@ typedef struct {
 
 typedef struct {
   int id;
-  int ip;
+  in_addr ip;
   char name[50];
   Point2 position;
   Color color;

@@ -231,7 +231,7 @@ void moveShot(Shot* shot) {
 
 
 void removePlayer(int id) {
-  printf("Client disconnected: %d\n", id);
+  printf("Client %d disconnected from : %s\n", id, inet_ntoa(g_players[id]->ip));
   delete g_players[id];
   g_players[id] = nullptr;
 }
@@ -282,11 +282,13 @@ int main(int argc, char** argv) {
             break;
           case 3:
             //Player
-            if (createPlayer())  {            
+            if (createPlayer())  {   
+              g_players[g_num_clients - 1]->ip = ipc[g_num_clients - 1].sin_addr;
+            
               //Send player info back
               pack_out->id = 3;
               pack_out->player.id = g_players[g_num_clients - 1]->id;
-              printf("New player id is:  %d\n", *g_players[g_num_clients - 1]);
+              printf("New player with id %d connected from %s\n", g_players[g_num_clients - 1]->id, inet_ntoa(g_players[g_num_clients - 1]->ip));
               sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[g_num_clients - 1], sizeof(ipc[g_num_clients - 1]));
             } else {
               pack_out->id = 0;
