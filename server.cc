@@ -19,16 +19,53 @@ int g_num_shots=0;
 
 
 ///Returns the index of the player collided with
-int checkCollisions(Player* player) {
+int checkPlayerPlayerCollisions(Player* player) {
   int collided = -1;
   
   //check player collisions
   for (int i=0; i<g_num_clients && collided==-1; i++) {
     if (player->id != i) {
       if ( (player->position.x + g_player_size > g_players[i]->position.x && player->position.x < g_players[i]->position.x + g_player_size) 
-        && (player->position.y + g_player_size > g_players[i]->position.y && player->position.y < g_players[i]->position.y + g_player_size))
+        && (player->position.y + g_player_size > g_players[i]->position.y && player->position.y < g_players[i]->position.y + g_player_size)) {
       
         collided = i;
+      }
+    }
+  }
+  
+  return collided;
+}
+
+
+//Returns the index of the player collided with
+int checkShotPlayerCollisions(Shot* shot) {
+  int collided = -1;
+  
+  //check player collisions
+  for (int i=0; i<g_num_clients && collided==-1; i++) {
+    if ( (shot->position.x + g_shot_size > g_players[i]->position.x && shot->position.x < g_players[i]->position.x + g_player_size) 
+      && (shot->position.y + g_shot_size > g_players[i]->position.y && shot->position.y < g_players[i]->position.y + g_player_size)) {
+    
+      collided = i;
+    }
+  }
+  
+  return collided;
+}
+
+
+//Returns the index of the shot collided with
+int checkShotShotCollisions(Shot* shot) {
+  int collided = -1;
+  
+  //check player collisions
+  for (int i=0; i<g_num_shots && collided==-1; i++) {
+    if (shot != g_shots[i]) {
+      if ( (shot->position.x + g_shot_size > g_shots[i]->position.x && shot->position.x < g_shots[i]->position.x + g_shot_size) 
+        && (shot->position.y + g_shot_size > g_shots[i]->position.y && shot->position.y < g_shots[i]->position.y + g_shot_size)) {
+      
+        collided = i;
+      }
     }
   }
   
@@ -39,23 +76,25 @@ int checkCollisions(Player* player) {
 void move(int player_id, Direction direction) {
   Point2 prev = g_players[player_id]->position;
   
+  g_players[player_id]->direction = direction;
+  
   //Update positions
   switch (direction) {
     case UP:
       if (g_players[player_id]->position.y > 0)
-        g_players[player_id]->position.y -= g_speed;
+        g_players[player_id]->position.y -= g_player_speed;
       break;
     case RIGHT:
       if (g_players[player_id]->position.x < kWinWidth)
-        g_players[player_id]->position.x += g_speed;
+        g_players[player_id]->position.x += g_player_speed;
       break;
     case DOWN:
       if (g_players[player_id]->position.y < kWinHeight)
-        g_players[player_id]->position.y += g_speed;
+        g_players[player_id]->position.y += g_player_speed;
       break;
     case LEFT:
       if (g_players[player_id]->position.x > 0)
-        g_players[player_id]->position.x -= g_speed;
+        g_players[player_id]->position.x -= g_player_speed;
       break;
     case NONE:
     default:
@@ -63,16 +102,15 @@ void move(int player_id, Direction direction) {
   }
   
   
-  int collider = checkCollisions(g_players[player_id]);
+  int collider = checkPlayerPlayerCollisions(g_players[player_id]);
   if (collider != -1) {
-    int strength = 100;
     
     //Push colliding players backwards
-    g_players[collider]->position.x += (g_players[player_id]->position.x - prev.x) * strength;
-    g_players[collider]->position.y += (g_players[player_id]->position.y - prev.y) * strength;
+    g_players[collider]->position.x += (g_players[player_id]->position.x - prev.x) * g_strength;
+    g_players[collider]->position.y += (g_players[player_id]->position.y - prev.y) * g_strength;
     
-    g_players[player_id]->position.x -= (g_players[player_id]->position.x - prev.x) * strength;
-    g_players[player_id]->position.y -= (g_players[player_id]->position.y - prev.y) * strength;
+    g_players[player_id]->position.x -= (g_players[player_id]->position.x - prev.x) * g_strength;
+    g_players[player_id]->position.y -= (g_players[player_id]->position.y - prev.y) * g_strength;
     
     
     //Damage colliding players
@@ -137,10 +175,63 @@ void createShot(Player* player) {
   shot->player_id = player->id;
   shot->position = player->position;
   printf("SHOTPOS :  %f,%f",shot->position.x,shot->position.y);
-  shot->velocity = {1.0f, 1.0f};
+  
+  
+  switch (player->direction) {
+    case 1:
+      shot->velocity = {0.0f, -1.0f};
+      break;
+    case 2:
+      shot->velocity = {1.0f, 0.0f};
+      break;
+    case 3:
+      shot->velocity = {0.0f, 1.0f};
+      break;
+    case 4:
+      shot->velocity = {-1.0f, 0.0f};
+      break;
+    default:
+      printf("\nDirection out of range\n");
+      break;
+  }
+  
+  //Adjust velocity
+  shot->velocity.x *= g_shot_speed;
+  shot->velocity.y *= g_shot_speed;
   
   g_shots[g_num_shots] = shot;
   g_num_shots++;
+}
+
+
+void destroyShot(Shot* shot) {
+  for (int i=0; i<g_num_shots; i++) {
+    if (g_shots[i] == shot) {
+      g_num_shots--;
+      
+      if (i < g_num_shots) {
+        g_shots[i] = g_shots[g_num_shots];
+        g_shots[g_num_shots] = nullptr;
+      }
+    }
+  }
+}
+
+
+void moveShot(Shot* shot) {
+  //Advance shot position
+  shot->position.x += shot->velocity.x;
+  shot->position.y += shot->velocity.y;
+  
+  //Check screen boundaries
+  if (shot->position.y < 0 || shot->position.x > kWinWidth
+      || shot->position.y > kWinHeight || shot->position.x < 0) {
+
+    destroyShot(shot);
+  } else {
+    
+    
+  }
 }
 
 
@@ -159,7 +250,7 @@ int main(int argc, char** argv) {
   fd_set SOCK_IN;
   struct sockaddr_in ip, ipc[64];
   int size=sizeof(ip);
-  char buffer[512];
+  char buffer[1024];
   WSAStartup(MAKEWORD(2,0), &wsa);
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   ip.sin_family=AF_INET;
@@ -173,11 +264,11 @@ int main(int argc, char** argv) {
   Package* pack_out = new Package();
   
   while (1) {
-    memset(buffer, 0, 512);
+    memset(buffer, 0, 1024);
     FD_SET(sock, &SOCK_IN);
     select(g_num_clients, &SOCK_IN, NULL, NULL, &time);
     if (FD_ISSET(sock, &SOCK_IN)) {
-      if (recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
+      if (recvfrom(sock, buffer, 1024, 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
         
         Package* pack_in = new Package();
         memcpy(pack_in, buffer, sizeof(Package));
@@ -234,10 +325,32 @@ int main(int argc, char** argv) {
         pack_out->gamestatus.players[i] = *g_players[i];
     }
     
+    
     //Copy all shots data to package_out
     for (int i=0; i<g_num_shots; i++) {
-      if (g_shots[i] != nullptr)
+      if (g_shots[i] != nullptr) {
+        //Update shot
+        moveShot(g_shots[i]);
+        int player_hit = checkShotPlayerCollisions(g_shots[i]);
+        
+        if (player_hit != -1) {
+          if (player_hit != g_shots[i]->player_id) {
+            destroyShot(g_shots[i]);
+            g_players[player_hit]->health -= 10;
+            g_players[player_hit]->position.x += g_shots[i]->velocity.x * g_strength;
+            g_players[player_hit]->position.y += g_shots[i]->velocity.y * g_strength;
+          }
+        } else {
+          int shot_hit = checkShotShotCollisions(g_shots[i]);
+          
+          if (shot_hit != -1) {
+            destroyShot(g_shots[i]);
+            destroyShot(g_shots[shot_hit]);
+          }
+        }
+        
         pack_out->gamestatus.shots[i] = *g_shots[i];
+        }
     }
     
     //Send data to all players

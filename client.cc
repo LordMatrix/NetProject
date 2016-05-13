@@ -169,7 +169,7 @@ int ESAT::main(int argc, char** argv) {
       
       for (int i=0; i<status.num_shots; i++) {
         //printf("%f, %f\n",status.shots[i].position.x,status.shots[i].position.y);
-        drawCube(g_player_size/4, status.players[status.shots[i].player_id].color, status.shots[i].position);
+        drawCube(g_shot_size, status.players[status.shots[i].player_id].color, status.shots[i].position);
       }
     }
   }

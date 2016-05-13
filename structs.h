@@ -55,5 +55,9 @@ int g_refresh_time = 50;
 const int kWinWidth = 800;
 const int kWinHeight = 600;
 
-float g_speed = 0.2f;
+float g_player_speed = 5.0f;
+float g_shot_speed = 1.5f;
+float g_strength = 10.0f;
+
 float g_player_size = 20.0f;
+float g_shot_size = 5.0f;
