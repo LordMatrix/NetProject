@@ -33,7 +33,7 @@ int ESAT::main(int argc, char** argv) {
   SOCKET sock, socks;
   fd_set SOCK_IN;
   struct sockaddr_in ip, ips;
-  char buffer[512];
+  char buffer[1024];
   int size=sizeof(ip);
   WSAStartup(MAKEWORD(2,0), &wsa);
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -68,10 +68,10 @@ int ESAT::main(int argc, char** argv) {
   sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
   
   //Get player info back
-  memset(buffer, 0, 512);
-  recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ip, &size);
+  memset(buffer, 0, 1024);
+  recvfrom(sock, buffer, 1024, 0, (SOCKADDR*)&ip, &size);
   Package* pack_in = new Package();
-  memcpy(pack_in, buffer, 512);
+  memcpy(pack_in, buffer, 1024);
   printf("PACKIN   %d\n",pack_in->id);
   if (pack_in->id) {
     player->id = pack_in->player.id;
@@ -110,8 +110,13 @@ int ESAT::main(int argc, char** argv) {
 		pack->movement.direction = LEFT;
 		send = true;
 	}
-	
-	
+
+  if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Space)) {
+    pack->movement.shooting = true;
+    send = true;
+  }
+  
+  
 	//Send Package struct with direction
   if (send) {
     pack->id = 1;
@@ -123,15 +128,15 @@ int ESAT::main(int argc, char** argv) {
 	
   
   //Receive game status
-  memset(buffer, 0, 512);
+  memset(buffer, 0, 1024);
   FD_SET(sock, &SOCK_IN);
   select(1, &SOCK_IN, NULL, NULL, &time);
   
   if (FD_ISSET(sock, &SOCK_IN)) {
-    if (recvfrom(sock, buffer, 512, 0, (SOCKADDR*)&ip, &size)) {
+    if (recvfrom(sock, buffer, 1024, 0, (SOCKADDR*)&ip, &size)) {
       
       memset (pack_in, 0, sizeof(Package));
-      memcpy(pack_in, buffer, 512);
+      memcpy(pack_in, buffer, 1024);
       
       GameStatus status = pack_in->gamestatus;
       
@@ -160,6 +165,11 @@ int ESAT::main(int argc, char** argv) {
         }
         ESAT::DrawText(x, y, status.players[i].name);
         ESAT::DrawText(x, y + 20.0f, std::to_string(status.players[i].health).c_str());
+      }
+      
+      for (int i=0; i<status.num_shots; i++) {
+        //printf("%f, %f\n",status.shots[i].position.x,status.shots[i].position.y);
+        drawCube(g_player_size/4, status.players[status.shots[i].player_id].color, status.shots[i].position);
       }
     }
   }

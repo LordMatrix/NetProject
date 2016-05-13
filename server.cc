@@ -7,9 +7,6 @@
 #include "structs.h"
 
 
-//Map where the players live
-int g_board[8][8];
-
 Player* g_players[10];
 int g_num_clients=0;
 int g_max_clients=4;
@@ -17,17 +14,21 @@ int g_max_clients=4;
 int g_map_width;
 int g_map_height;
 
+Shot* g_shots[50];
+int g_num_shots=0;
 
-bool checkCollisions(Player* player) {
-  bool collided = false;
+
+///Returns the index of the player collided with
+int checkCollisions(Player* player) {
+  int collided = -1;
   
   //check player collisions
-  for (int i=0; i<g_num_clients && ! collided; i++) {
+  for (int i=0; i<g_num_clients && collided==-1; i++) {
     if (player->id != i) {
       if ( (player->position.x + g_player_size > g_players[i]->position.x && player->position.x < g_players[i]->position.x + g_player_size) 
         && (player->position.y + g_player_size > g_players[i]->position.y && player->position.y < g_players[i]->position.y + g_player_size))
       
-        collided = true;
+        collided = i;
     }
   }
   
@@ -61,8 +62,23 @@ void move(int player_id, Direction direction) {
       break;
   }
   
-  if (checkCollisions(g_players[player_id]))
-    g_players[player_id]->position = prev;
+  
+  int collider = checkCollisions(g_players[player_id]);
+  if (collider != -1) {
+    int strength = 100;
+    
+    //Push colliding players backwards
+    g_players[collider]->position.x += (g_players[player_id]->position.x - prev.x) * strength;
+    g_players[collider]->position.y += (g_players[player_id]->position.y - prev.y) * strength;
+    
+    g_players[player_id]->position.x -= (g_players[player_id]->position.x - prev.x) * strength;
+    g_players[player_id]->position.y -= (g_players[player_id]->position.y - prev.y) * strength;
+    
+    
+    //Damage colliding players
+    g_players[player_id]->health -= 1.0f;
+    g_players[collider]->health -= 1.0f;
+  }
 }
 
 
@@ -115,6 +131,19 @@ bool createPlayer() {
 }
 
 
+void createShot(Player* player) {
+  Shot* shot = new Shot();
+  
+  shot->player_id = player->id;
+  shot->position = player->position;
+  printf("SHOTPOS :  %f,%f",shot->position.x,shot->position.y);
+  shot->velocity = {1.0f, 1.0f};
+  
+  g_shots[g_num_shots] = shot;
+  g_num_shots++;
+}
+
+
 void removePlayer(int id) {
   printf("Client disconnected: %d\n", id);
   delete g_players[id];
@@ -157,6 +186,11 @@ int main(int argc, char** argv) {
           case 1:
             //Direction
             move(pack_in->movement.player_id, pack_in->movement.direction);
+            
+            if (pack_in->movement.shooting) {
+              printf("player is shooting : %d\n", g_num_shots);
+              createShot(g_players[pack_in->movement.player_id]);
+            }
             break;
           case 2:
             //GameState
@@ -190,12 +224,20 @@ int main(int argc, char** argv) {
     }
     
     //Send game status
-    memset(pack_out, 3, sizeof(Package));
+    memset(pack_out, 0, sizeof(Package));
     pack_out->gamestatus.num_players = g_num_clients;
+    pack_out->gamestatus.num_shots = g_num_shots;
+    
     //Copy all player data to package_out
     for (int i=0; i<g_num_clients; i++) {
       if (g_players[i] != nullptr)
         pack_out->gamestatus.players[i] = *g_players[i];
+    }
+    
+    //Copy all shots data to package_out
+    for (int i=0; i<g_num_shots; i++) {
+      if (g_shots[i] != nullptr)
+        pack_out->gamestatus.shots[i] = *g_shots[i];
     }
     
     //Send data to all players

@@ -3,11 +3,12 @@ enum Direction { NONE, UP, RIGHT, DOWN, LEFT };
 typedef struct {
   int player_id;
   Direction direction;
+  bool shooting;
 } Movement;
 
 typedef struct {
 	float x,y;
-} Point2;
+} Point2, Vec2;
 
 typedef struct {
   unsigned char r;
@@ -27,8 +28,16 @@ typedef struct {
 } Player;
 
 typedef struct {
+  int player_id;
+  Point2 position;
+  Vec2 velocity;
+} Shot;
+
+typedef struct {
   int num_players;
+  int num_shots;
   Player players[10];
+  Shot shots[50];
 } GameStatus;
 
 typedef struct {
@@ -46,5 +55,5 @@ int g_refresh_time = 50;
 const int kWinWidth = 800;
 const int kWinHeight = 600;
 
-float g_speed = 5.0f;
+float g_speed = 0.2f;
 float g_player_size = 20.0f;
