@@ -85,6 +85,13 @@ void createHit(Point2 position) {
   g_num_hits++;
 }
 
+void damagePlayer(Player* player, float amount) {
+  if (player->health >= 0.0f)
+    player->health -= amount;
+  else
+    player->alive = false;
+}
+
 
 void move(int player_id, Direction direction) {
   Point2 prev = g_players[player_id]->position;
@@ -127,8 +134,8 @@ void move(int player_id, Direction direction) {
     
     
     //Damage colliding players
-    g_players[player_id]->health -= 1.0f;
-    g_players[collider]->health -= 1.0f;
+    damagePlayer(g_players[player_id], 1.0f);
+    damagePlayer(g_players[collider], 1.0f);
     
     createHit(g_players[collider]->position);
   }
@@ -140,7 +147,7 @@ bool createPlayer() {
   if (g_num_clients < g_max_clients) {
     Player* player = new Player();
     player->id = g_num_clients;
-    player->health = 1000.0f;
+    player->health = g_player_health;
     
     Color color;
     switch (g_num_clients) {
@@ -170,6 +177,7 @@ bool createPlayer() {
     }
     
     player->color = color;
+    player->alive = true;
     
     g_players[g_num_clients] = player;
 
@@ -298,10 +306,12 @@ int main(int argc, char** argv) {
         switch (pack_in->id) {
           case 1:
             //Direction
-            move(pack_in->movement.player_id, pack_in->movement.direction);
-            
-            if (pack_in->movement.shooting) {
-              createShot(g_players[pack_in->movement.player_id]);
+            if (g_players[pack_in->movement.player_id]->alive) {
+              move(pack_in->movement.player_id, pack_in->movement.direction);
+              
+              if (pack_in->movement.shooting) {
+                createShot(g_players[pack_in->movement.player_id]);
+              }
             }
             break;
           case 2:
@@ -370,7 +380,7 @@ int main(int argc, char** argv) {
             createHit(g_shots[i]->position);
             
             destroyShot(g_shots[i]);
-            g_players[player_hit]->health -= 10;
+            damagePlayer(g_players[player_hit], 10);
             g_players[player_hit]->position.x += g_shots[i]->velocity.x * g_strength;
             g_players[player_hit]->position.y += g_shots[i]->velocity.y * g_strength;
           }

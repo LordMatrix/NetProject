@@ -41,7 +41,7 @@ void drawLifeBar(float health, Color color, Point2 position) {
   ESAT::DrawSolidPath(border_points, 5);
   
   //Create healthbar points
-  width = (width/1000.0f) * health;
+  width = (width/g_player_health) * health;
   float health_points[10] = {x,y, x+width,y, x+width,y+size, x,y+size, x,y};
   ESAT::DrawSetStrokeColor(0,0,0,0);
   ESAT::DrawSetFillColor(color.r,color.g,color.b,color.a);
@@ -55,8 +55,8 @@ void drawHit(Hit hit) {
   float angle = (360/num_particles) * 0.0174533f;
 
   for (int i=0; i<num_particles; i++) {
-    x = hit.position.x + cos(angle*i) * hit.age;
-    y = hit.position.y + sin(angle*i) * hit.age;
+    x = hit.position.x + cos(angle*i) * hit.age/2;
+    y = hit.position.y + sin(angle*i) * hit.age/2;
 
     ESAT::DrawSetFillColor(0,0,0);
     ESAT::DrawSetStrokeColor(0,0,0);
@@ -115,10 +115,13 @@ int ESAT::main(int argc, char** argv) {
   
   std::string name = "";
   ESAT::SpriteHandle avatars[4];
+  ESAT::SpriteHandle skull;
   
   for (int i=0; i<4; i++) {
     avatars[i] = ESAT::SpriteFromFile(("assets/img/"+std::to_string(i+1)+".png").c_str());
   }
+  
+  skull = ESAT::SpriteFromFile("assets/img/skull.png");
   
   while(ESAT::WindowIsOpened() && !exit) {
   
@@ -249,6 +252,9 @@ int ESAT::main(int argc, char** argv) {
           
           for (int i=0; i<status.num_players; i++) {
             drawCube(g_player_size/2, status.players[i].color, status.players[i].position);
+            
+            if (!status.players[i].alive)
+              ESAT::DrawSprite(skull, status.players[i].position.x, status.players[i].position.y);
             
             //Draw player info
             int x,y,lx,ly;
