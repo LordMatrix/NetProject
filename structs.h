@@ -71,9 +71,9 @@ const int kWinHeight = 768;
 float g_player_speed = 0.2f;
 float g_shot_speed = 0.5f;
 float g_strength = 10.0f;
-int g_player_health = 20.0f;
+int g_player_health = 500.0f;
 int g_max_shots = 50;
-double g_shot_delay = 300.0f;
+double g_shot_delay = 200.0f;
 
 float g_player_size = 60.0f;
 float g_shot_size = 10.0f;
