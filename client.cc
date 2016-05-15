@@ -116,12 +116,14 @@ int ESAT::main(int argc, char** argv) {
   std::string name = "";
   ESAT::SpriteHandle avatars[4];
   ESAT::SpriteHandle skull;
+  ESAT::SpriteHandle score;
   
   for (int i=0; i<4; i++) {
     avatars[i] = ESAT::SpriteFromFile(("assets/img/"+std::to_string(i+1)+".png").c_str());
   }
   
   skull = ESAT::SpriteFromFile("assets/img/skull.png");
+  score = ESAT::SpriteFromFile("assets/img/score.png");
   
   while(ESAT::WindowIsOpened() && !exit) {
   
@@ -299,8 +301,13 @@ int ESAT::main(int argc, char** argv) {
             ESAT::DrawSetTextSize(20.0f);
             ESAT::DrawText(lx, ly-20.0f, status.players[i].name);
             
+            //Draw score
+            ESAT::DrawSprite(score, lx, ly-10);
+            setText();
+            ESAT::DrawText(lx+40, ly+15, std::to_string(status.players[i].score).c_str());
+            
             //Draw lifebar
-            Point2 pos = {lx, ly};
+            Point2 pos = {lx, ly+25};
             drawLifeBar(status.players[i].health, status.players[i].color, pos);
           }
           

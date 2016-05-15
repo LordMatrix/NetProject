@@ -123,7 +123,7 @@ void move(int player_id, Direction direction) {
   
   
   int collider = checkPlayerPlayerCollisions(g_players[player_id]);
-  if (collider != -1) {
+  if (collider != -1 && g_players[collider]->alive) {
     
     //Push colliding players backwards
     g_players[collider]->position.x += (g_players[player_id]->position.x - prev.x) * g_strength;
@@ -309,7 +309,7 @@ int main(int argc, char** argv) {
             if (g_players[pack_in->movement.player_id]->alive) {
               move(pack_in->movement.player_id, pack_in->movement.direction);
               
-              if (pack_in->movement.shooting) {
+              if (pack_in->movement.shooting && g_num_shots < g_max_shots) {
                 createShot(g_players[pack_in->movement.player_id]);
               }
             }
@@ -383,6 +383,10 @@ int main(int argc, char** argv) {
             damagePlayer(g_players[player_hit], 10);
             g_players[player_hit]->position.x += g_shots[i]->velocity.x * g_strength;
             g_players[player_hit]->position.y += g_shots[i]->velocity.y * g_strength;
+            
+            //Add score
+            if (g_players[player_hit]->alive)
+              g_players[g_shots[i]->player_id]->score += 10.0f;
           }
         } else {
           int shot_hit = checkShotShotCollisions(g_shots[i]);

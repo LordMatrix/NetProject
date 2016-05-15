@@ -27,6 +27,7 @@ typedef struct {
   Direction direction;
   float health;
   bool alive;
+  int score;
 } Player;
 
 typedef struct {
@@ -65,9 +66,10 @@ const int kWinWidth = 1366;
 const int kWinHeight = 768;
 
 float g_player_speed = 0.2f;
-float g_shot_speed = 0.1f;
+float g_shot_speed = 0.5f;
 float g_strength = 10.0f;
 int g_player_health = 20.0f;
+int g_max_shots = 50;
 
 float g_player_size = 60.0f;
 float g_shot_size = 10.0f;
