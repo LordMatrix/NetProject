@@ -20,12 +20,32 @@ void drawCube(int size, Color color, Point2 position) {
   float y = position.y;
   
   //Create cube points
-  //float pathpoints[10] = {-size+x,size+y, size+x,size+y, size+x,-size+y, -size+x,-size+y, -size+x,size+y};
   float pathpoints[10] = {x,y, x+size,y, x+size,y+size, x,y+size, x,y};
   
   ESAT::DrawSetStrokeColor(color.r,color.g,color.b,color.a);
   ESAT::DrawSetFillColor(color.r,color.g,color.b,color.a);
   ESAT::DrawSolidPath(pathpoints, 5);
+}
+
+
+void drawLifeBar(float health, Color color, Point2 position) {
+  float x = position.x;
+  float y = position.y;
+  int size = 25;
+  float width = size*6;
+  
+  //Create border points
+  float border_points[10] = {x,y, x+width,y, x+width,y+size, x,y+size, x,y};
+  ESAT::DrawSetStrokeColor(0,0,0,255);
+  ESAT::DrawSetFillColor(0,0,0,0);
+  ESAT::DrawSolidPath(border_points, 5);
+  
+  //Create healthbar points
+  width = (width/1000.0f) * health;
+  float health_points[10] = {x,y, x+width,y, x+width,y+size, x,y+size, x,y};
+  ESAT::DrawSetStrokeColor(0,0,0,0);
+  ESAT::DrawSetFillColor(color.r,color.g,color.b,color.a);
+  ESAT::DrawSolidPath(health_points, 5);
 }
 
 
@@ -215,26 +235,35 @@ int ESAT::main(int argc, char** argv) {
             drawCube(g_player_size/2, status.players[i].color, status.players[i].position);
             
             //Draw player info
-            int x,y;
+            int x,y,lx,ly;
             switch (status.players[i].id) {
               case 0:
                 x = 0;
                 y= 20;
+                lx = x+50.0f;
+                ly = y+20.0f;
                 break;
               case 1:
                 x = kWinWidth - 100;
                 y = 20;
+                lx = x-170.0f;
+                ly = y+20.0f;
                 break;
               case 2:
                 x = 0;
                 y = kWinHeight - 60;
+                lx = x+50.0f;
+                ly = y+20.0f;
                 break;
               case 3:
                 x = kWinWidth - 100;
                 y = kWinHeight - 60;
+                lx = x-170.0f;
+                ly = y+20.0f;
                 break;
             }
             
+            //Draw avatar
             ESAT::Mat3 scale, translate, transform;
             float factor = 0.2;
             
@@ -243,11 +272,14 @@ int ESAT::main(int argc, char** argv) {
             ESAT::Mat3Multiply(translate, scale, &transform);
             ESAT::DrawSpriteWithMatrix(avatars[status.players[i].avatar - 1], transform);
             
+            //Draw nickname
             ESAT::DrawSetFillColor(status.players[i].color.r,status.players[i].color.g,status.players[i].color.b);
             ESAT::DrawSetTextSize(20.0f);
+            ESAT::DrawText(lx, ly-20.0f, status.players[i].name);
             
-            ESAT::DrawText(x, y, status.players[i].name);
-            ESAT::DrawText(x, y + 20.0f, std::to_string(status.players[i].health).c_str());
+            //Draw lifebar
+            Point2 pos = {lx, ly};
+            drawLifeBar(status.players[i].health, status.players[i].color, pos);
           }
           
           for (int i=0; i<status.num_shots; i++) {

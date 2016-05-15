@@ -133,25 +133,21 @@ bool createPlayer() {
         color = {255,0,0,255};
         player->position.x = g_player_size;
         player->position.y = g_player_size;
-        memcpy(player->name,"DOGE", 15);
         break;
       case 1:
         color = {0,255,0,255};
         player->position.x = kWinWidth - g_player_size;
         player->position.y = g_player_size;
-        memcpy(player->name,"LONGCAT", 15);
         break;
       case 2:
         color = {0,0,255,255};
         player->position.x = g_player_size;
         player->position.y = kWinHeight - g_player_size;
-        memcpy(player->name,"SMIUCH", 15);
         break;
       case 3:
         color = {255,255,0,255};
         player->position.x = kWinWidth - g_player_size;
         player->position.y = kWinHeight - g_player_size;
-        memcpy(player->name,"LITTLEMARMOT", 15);
         break;
       default:
         color = {0,0,0,255};
@@ -285,7 +281,13 @@ int main(int argc, char** argv) {
           case 3:
             //Player
             if (createPlayer())  {
+              printf("%d\n",pack_in->player.avatar);
               g_players[g_num_clients - 1]->avatar = pack_in->player.avatar;
+              
+              //Default avatar
+              if (!pack_in->player.avatar)
+                g_players[g_num_clients - 1]->avatar = 1;
+              
               g_players[g_num_clients - 1]->ip = ipc[g_num_clients - 1].sin_addr;
               memcpy(g_players[g_num_clients - 1]->name, pack_in->player.name, 50);
               
