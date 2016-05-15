@@ -19,6 +19,7 @@ typedef struct {
 
 typedef struct {
   int id;
+  int avatar;
   in_addr ip;
   char name[50];
   Point2 position;
@@ -52,11 +53,11 @@ typedef struct {
 
 int g_refresh_time = 50;
 
-const int kWinWidth = 800;
-const int kWinHeight = 600;
+const int kWinWidth = 1366;
+const int kWinHeight = 768;
 
-float g_player_speed = 5.0f;
-float g_shot_speed = 1.5f;
+float g_player_speed = 0.2f;
+float g_shot_speed = 0.1f;
 float g_strength = 10.0f;
 
 float g_player_size = 60.0f;

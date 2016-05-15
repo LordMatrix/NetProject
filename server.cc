@@ -285,8 +285,10 @@ int main(int argc, char** argv) {
           case 3:
             //Player
             if (createPlayer())  {
+              g_players[g_num_clients - 1]->avatar = pack_in->player.avatar;
               g_players[g_num_clients - 1]->ip = ipc[g_num_clients - 1].sin_addr;
-            
+              memcpy(g_players[g_num_clients - 1]->name, pack_in->player.name, 50);
+              
               //Send player info back
               pack_out->id = 3;
               pack_out->player.id = g_players[g_num_clients - 1]->id;
