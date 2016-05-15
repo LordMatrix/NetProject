@@ -35,10 +35,17 @@ typedef struct {
 } Shot;
 
 typedef struct {
+  Point2 position;
+  float age;
+} Hit;
+
+typedef struct {
   int num_players;
   int num_shots;
+  int num_hits;
   Player players[10];
   Shot shots[50];
+  Hit hits[50];
 } GameStatus;
 
 typedef struct {

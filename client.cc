@@ -49,6 +49,22 @@ void drawLifeBar(float health, Color color, Point2 position) {
 }
 
 
+void drawHit(Hit hit) {
+  float x,y;
+  int num_particles = 20;
+  float angle = (360/num_particles) * 0.0174533f;
+
+  for (int i=0; i<num_particles; i++) {
+    x = hit.position.x + cos(angle*i) * hit.age;
+    y = hit.position.y + sin(angle*i) * hit.age;
+
+    ESAT::DrawSetFillColor(0,0,0);
+    ESAT::DrawSetStrokeColor(0,0,0);
+    ESAT::DrawLine(x,y,x+2,y+2);
+  }
+}
+
+
 void game() {
   
 }
@@ -69,7 +85,7 @@ int ESAT::main(int argc, char** argv) {
   SOCKET sock, socks;
   fd_set SOCK_IN;
   struct sockaddr_in ip, ips;
-  char buffer[1024];
+  char buffer[2048];
   int size=sizeof(ip);
   WSAStartup(MAKEWORD(2,0), &wsa);
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -166,10 +182,10 @@ int ESAT::main(int argc, char** argv) {
         sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
         
         //Get player info back
-        memset(buffer, 0, 1024);
-        recvfrom(sock, buffer, 1024, 0, (SOCKADDR*)&ip, &size);
+        memset(buffer, 0, 2048);
+        recvfrom(sock, buffer, 2048, 0, (SOCKADDR*)&ip, &size);
         
-        memcpy(pack_in, buffer, 1024);
+        memcpy(pack_in, buffer, 2048);
         printf("PACKIN   %d\n",pack_in->id);
         if (pack_in->id) {
           player->id = pack_in->player.id;
@@ -219,15 +235,15 @@ int ESAT::main(int argc, char** argv) {
       
       
       //Receive game status
-      memset(buffer, 0, 1024);
+      memset(buffer, 0, 2048);
       FD_SET(sock, &SOCK_IN);
       select(1, &SOCK_IN, NULL, NULL, &time);
       
       if (FD_ISSET(sock, &SOCK_IN)) {
-        if (recvfrom(sock, buffer, 1024, 0, (SOCKADDR*)&ip, &size)) {
+        if (recvfrom(sock, buffer, 2048, 0, (SOCKADDR*)&ip, &size)) {
           
           memset (pack_in, 0, sizeof(Package));
-          memcpy(pack_in, buffer, 1024);
+          memcpy(pack_in, buffer, 2048);
           
           GameStatus status = pack_in->gamestatus;
           
@@ -282,8 +298,14 @@ int ESAT::main(int argc, char** argv) {
             drawLifeBar(status.players[i].health, status.players[i].color, pos);
           }
           
+          //Draw shots
           for (int i=0; i<status.num_shots; i++) {
             drawCube(g_shot_size, status.players[status.shots[i].player_id].color, status.shots[i].position);
+          }
+          
+          //Draw hits
+          for (int i=0; i<status.num_hits; i++) {
+            drawHit(status.hits[i]);
           }
         }
       }

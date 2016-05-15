@@ -17,6 +17,9 @@ int g_map_height;
 Shot* g_shots[50];
 int g_num_shots=0;
 
+Hit* g_hits[50];
+int g_num_hits=0;
+
 
 ///Returns the index of the player collided with
 int checkPlayerPlayerCollisions(Player* player) {
@@ -73,6 +76,16 @@ int checkShotShotCollisions(Shot* shot) {
 }
 
 
+void createHit(Point2 position) {
+  Hit* hit = new Hit();
+  hit->position = position;
+  hit->age = 0.0f;
+  
+  g_hits[g_num_hits] = hit;
+  g_num_hits++;
+}
+
+
 void move(int player_id, Direction direction) {
   Point2 prev = g_players[player_id]->position;
   
@@ -116,6 +129,8 @@ void move(int player_id, Direction direction) {
     //Damage colliding players
     g_players[player_id]->health -= 1.0f;
     g_players[collider]->health -= 1.0f;
+    
+    createHit(g_players[collider]->position);
   }
 }
 
@@ -213,6 +228,20 @@ void destroyShot(Shot* shot) {
 }
 
 
+void destroyHit(Hit* hit) {
+  for (int i=0; i<g_num_hits; i++) {
+    if (g_hits[i] == hit) {
+      g_num_hits--;
+      
+      if (i < g_num_hits) {
+        g_hits[i] = g_hits[g_num_hits];
+        g_hits[g_num_hits] = nullptr;
+      }
+    }
+  }
+}
+
+
 void moveShot(Shot* shot) {
   //Advance shot position
   shot->position.x += shot->velocity.x;
@@ -243,7 +272,7 @@ int main(int argc, char** argv) {
   fd_set SOCK_IN;
   struct sockaddr_in ip, ipc[64];
   int size=sizeof(ip);
-  char buffer[1024];
+  char buffer[2048];
   WSAStartup(MAKEWORD(2,0), &wsa);
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   ip.sin_family=AF_INET;
@@ -257,11 +286,11 @@ int main(int argc, char** argv) {
   Package* pack_out = new Package();
   
   while (1) {
-    memset(buffer, 0, 1024);
+    memset(buffer, 0, 2048);
     FD_SET(sock, &SOCK_IN);
     select(g_num_clients, &SOCK_IN, NULL, NULL, &time);
     if (FD_ISSET(sock, &SOCK_IN)) {
-      if (recvfrom(sock, buffer, 1024, 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
+      if (recvfrom(sock, buffer, 2048, 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
         
         Package* pack_in = new Package();
         memcpy(pack_in, buffer, sizeof(Package));
@@ -318,8 +347,7 @@ int main(int argc, char** argv) {
     
     //Send game status
     memset(pack_out, 0, sizeof(Package));
-    pack_out->gamestatus.num_players = g_num_clients;
-    pack_out->gamestatus.num_shots = g_num_shots;
+    
     
     //Copy all player data to package_out
     for (int i=0; i<g_num_clients; i++) {
@@ -337,6 +365,10 @@ int main(int argc, char** argv) {
         
         if (player_hit != -1) {
           if (player_hit != g_shots[i]->player_id) {
+            
+            //Add hit effect
+            createHit(g_shots[i]->position);
+            
             destroyShot(g_shots[i]);
             g_players[player_hit]->health -= 10;
             g_players[player_hit]->position.x += g_shots[i]->velocity.x * g_strength;
@@ -346,6 +378,9 @@ int main(int argc, char** argv) {
           int shot_hit = checkShotShotCollisions(g_shots[i]);
           
           if (shot_hit != -1) {
+            //Add hit effect
+            createHit(g_shots[shot_hit]->position);
+            //Destroy shot
             destroyShot(g_shots[i]);
             destroyShot(g_shots[shot_hit]);
           }
@@ -353,6 +388,24 @@ int main(int argc, char** argv) {
         
         pack_out->gamestatus.shots[i] = *g_shots[i];
         }
+    }
+    
+    //Copy array lengths
+    pack_out->gamestatus.num_players = g_num_clients;
+    pack_out->gamestatus.num_shots = g_num_shots;
+    pack_out->gamestatus.num_hits = g_num_hits;
+
+    //Update hits
+    for (int i=0; i<g_num_hits; i++) {
+      g_hits[i]->age += 0.1f;
+      
+      if (g_hits[i]->age > 100.0f)
+        destroyHit(g_hits[i]);
+    }
+    
+    //Copy hits to package out
+    for (int i=0; i<g_num_hits; i++) {
+      pack_out->gamestatus.hits[i] = *g_hits[i];
     }
     
     //Send data to all players
