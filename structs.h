@@ -30,6 +30,7 @@ typedef struct {
   bool alive;
   bool blocking;
   int score;
+  double last_shot_time;
 } Player;
 
 typedef struct {
@@ -72,6 +73,7 @@ float g_shot_speed = 0.5f;
 float g_strength = 10.0f;
 int g_player_health = 20.0f;
 int g_max_shots = 50;
+double g_shot_delay = 300.0f;
 
 float g_player_size = 60.0f;
 float g_shot_size = 10.0f;

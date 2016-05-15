@@ -4,6 +4,7 @@
 #include "stdio.h"
 #include "winsock2.h"
 
+#include "time.h"
 #include "structs.h"
 
 
@@ -188,6 +189,7 @@ bool createPlayer() {
     player->color = color;
     player->alive = true;
     player->blocking = false;
+    player->last_shot_time = 0.0f;
     
     g_players[g_num_clients] = player;
 
@@ -284,7 +286,7 @@ void removePlayer(int id) {
 
 int main(int argc, char** argv) {
 
-  struct timeval time;
+  struct timeval utime;
   WSAData wsa;
   SOCKET sock;
   fd_set SOCK_IN;
@@ -298,15 +300,15 @@ int main(int argc, char** argv) {
   ip.sin_addr.s_addr=inet_addr("127.0.0.1");
   bind(sock, (SOCKADDR*)&ip, sizeof(ip));
   FD_ZERO(&SOCK_IN);
-  time.tv_sec=0;
-  time.tv_usec= g_refresh_time;
+  utime.tv_sec=0;
+  utime.tv_usec= g_refresh_time;
   
   Package* pack_out = new Package();
   
   while (1) {
     memset(buffer, 0, 2048);
     FD_SET(sock, &SOCK_IN);
-    select(g_num_clients, &SOCK_IN, NULL, NULL, &time);
+    select(g_num_clients, &SOCK_IN, NULL, NULL, &utime);
     if (FD_ISSET(sock, &SOCK_IN)) {
       if (recvfrom(sock, buffer, 2048, 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
         
@@ -320,7 +322,15 @@ int main(int argc, char** argv) {
               move(pack_in->movement.player_id, pack_in->movement.direction);
               
               if (pack_in->movement.shooting && g_num_shots < g_max_shots) {
-                createShot(g_players[pack_in->movement.player_id]);
+                //Create shot if the recharge time has passed
+                double current_tick;
+                current_tick = clock();
+             
+                if (current_tick - g_players[pack_in->movement.player_id]->last_shot_time > g_shot_delay) {
+                  createShot(g_players[pack_in->movement.player_id]);
+                  g_players[pack_in->movement.player_id]->last_shot_time = current_tick;
+                  
+                }
               }
               
               //Set/Unset blocking
@@ -407,9 +417,8 @@ int main(int argc, char** argv) {
             }
             
           }
-        } else {
+        } else {     
           int shot_hit = checkShotShotCollisions(g_shots[i]);
-          
           if (shot_hit != -1) {
             //Add hit effect
             createHit(g_shots[shot_hit]->position);
@@ -418,11 +427,9 @@ int main(int argc, char** argv) {
             destroyShot(g_shots[shot_hit]);
           }
         }
-        
         pack_out->gamestatus.shots[i] = *g_shots[i];
         }
     }
-    
     //Copy array lengths
     pack_out->gamestatus.num_players = g_num_clients;
     pack_out->gamestatus.num_shots = g_num_shots;
@@ -435,12 +442,12 @@ int main(int argc, char** argv) {
       if (g_hits[i]->age > 100.0f)
         destroyHit(g_hits[i]);
     }
-    
+
     //Copy hits to package out
     for (int i=0; i<g_num_hits; i++) {
       pack_out->gamestatus.hits[i] = *g_hits[i];
     }
-    
+
     //Send data to all players
     for (int i=0; i<g_num_clients; i++) {
       sendto(sock, (char*)pack_out, sizeof(Package), 0, (SOCKADDR*)&ipc[i], sizeof(ipc[i]));

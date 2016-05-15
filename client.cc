@@ -227,7 +227,7 @@ int ESAT::main(int argc, char** argv) {
       if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Control)) {
         pack->movement.blocking = true;
         send = true;
-      } else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Space)) {
+      } else if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Space)) {
         pack->movement.shooting = true;
         send = true;
       }
@@ -298,9 +298,9 @@ int ESAT::main(int argc, char** argv) {
             ESAT::Mat3 scale, translate, transform;
             float factor = 0.2;
             
-            ESAT::Mat3InitAsScale(factor, factor, &scale);
-            ESAT::Mat3InitAsTranslate(x,y,&translate);
-            ESAT::Mat3Multiply(translate, scale, &transform);
+            scale = ESAT::Mat3Scale(factor, factor);
+            translate = ESAT::Mat3Translate(x,y);
+            transform = ESAT::Mat3Multiply(translate, scale);
             ESAT::DrawSpriteWithMatrix(avatars[status.players[i].avatar - 1], transform);
             
             //Draw nickname
