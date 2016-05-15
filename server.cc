@@ -95,26 +95,30 @@ void damagePlayer(Player* player, float amount) {
 
 void move(int player_id, Direction direction) {
   Point2 prev = g_players[player_id]->position;
+  float speed = g_player_speed;
   
   g_players[player_id]->direction = direction;
   
+  if (g_players[player_id]->blocking)
+    speed = g_player_speed/3;
+    
   //Update positions
   switch (direction) {
     case UP:
       if (g_players[player_id]->position.y > 0)
-        g_players[player_id]->position.y -= g_player_speed;
+        g_players[player_id]->position.y -= speed;
       break;
     case RIGHT:
       if (g_players[player_id]->position.x < kWinWidth)
-        g_players[player_id]->position.x += g_player_speed;
+        g_players[player_id]->position.x += speed;
       break;
     case DOWN:
       if (g_players[player_id]->position.y < kWinHeight)
-        g_players[player_id]->position.y += g_player_speed;
+        g_players[player_id]->position.y += speed;
       break;
     case LEFT:
       if (g_players[player_id]->position.x > 0)
-        g_players[player_id]->position.x -= g_player_speed;
+        g_players[player_id]->position.x -= speed;
       break;
     case NONE:
     default:
@@ -125,19 +129,24 @@ void move(int player_id, Direction direction) {
   int collider = checkPlayerPlayerCollisions(g_players[player_id]);
   if (collider != -1 && g_players[collider]->alive) {
     
-    //Push colliding players backwards
-    g_players[collider]->position.x += (g_players[player_id]->position.x - prev.x) * g_strength;
-    g_players[collider]->position.y += (g_players[player_id]->position.y - prev.y) * g_strength;
+    //Create a hit if any of the collider players is NOT blocking
+    if (!g_players[player_id]->blocking || !g_players[collider]->blocking) {
+      
+      //Push colliding players backwards
+      g_players[collider]->position.x += (g_players[player_id]->position.x - prev.x) * g_strength;
+      g_players[collider]->position.y += (g_players[player_id]->position.y - prev.y) * g_strength;
+      
+      g_players[player_id]->position.x -= (g_players[player_id]->position.x - prev.x) * g_strength;
+      g_players[player_id]->position.y -= (g_players[player_id]->position.y - prev.y) * g_strength;
     
-    g_players[player_id]->position.x -= (g_players[player_id]->position.x - prev.x) * g_strength;
-    g_players[player_id]->position.y -= (g_players[player_id]->position.y - prev.y) * g_strength;
+      createHit(g_players[collider]->position);
+    }
     
-    
-    //Damage colliding players
-    damagePlayer(g_players[player_id], 1.0f);
-    damagePlayer(g_players[collider], 1.0f);
-    
-    createHit(g_players[collider]->position);
+    //Damage colliding players if neither of them is blocking
+    if (!g_players[player_id]->blocking && !g_players[collider]->blocking) {
+      damagePlayer(g_players[player_id], 1.0f);
+      damagePlayer(g_players[collider], 1.0f);
+    }
   }
 }
 
@@ -178,6 +187,7 @@ bool createPlayer() {
     
     player->color = color;
     player->alive = true;
+    player->blocking = false;
     
     g_players[g_num_clients] = player;
 
@@ -312,6 +322,9 @@ int main(int argc, char** argv) {
               if (pack_in->movement.shooting && g_num_shots < g_max_shots) {
                 createShot(g_players[pack_in->movement.player_id]);
               }
+              
+              //Set/Unset blocking
+              g_players[pack_in->movement.player_id]->blocking = pack_in->movement.blocking;
             }
             break;
           case 2:
@@ -380,13 +393,19 @@ int main(int argc, char** argv) {
             createHit(g_shots[i]->position);
             
             destroyShot(g_shots[i]);
-            damagePlayer(g_players[player_hit], 10);
             g_players[player_hit]->position.x += g_shots[i]->velocity.x * g_strength;
             g_players[player_hit]->position.y += g_shots[i]->velocity.y * g_strength;
             
-            //Add score
-            if (g_players[player_hit]->alive)
-              g_players[g_shots[i]->player_id]->score += 10.0f;
+            //Damage player is he¡s not blocking
+            if (!g_players[player_hit]->blocking) {
+              damagePlayer(g_players[player_hit], 10);
+              
+              //Add score
+              if (g_players[player_hit]->alive) {
+                g_players[g_shots[i]->player_id]->score += 10.0f;
+              }
+            }
+            
           }
         } else {
           int shot_hit = checkShotShotCollisions(g_shots[i]);

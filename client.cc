@@ -116,6 +116,7 @@ int ESAT::main(int argc, char** argv) {
   std::string name = "";
   ESAT::SpriteHandle avatars[4];
   ESAT::SpriteHandle skull;
+  ESAT::SpriteHandle block;
   ESAT::SpriteHandle score;
   
   for (int i=0; i<4; i++) {
@@ -124,10 +125,10 @@ int ESAT::main(int argc, char** argv) {
   
   skull = ESAT::SpriteFromFile("assets/img/skull.png");
   score = ESAT::SpriteFromFile("assets/img/score.png");
+  block = ESAT::SpriteFromFile("assets/img/block.png");
+  
   
   while(ESAT::WindowIsOpened() && !exit) {
-  
-    
     
     if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Escape))
       exit = true;
@@ -223,12 +224,14 @@ int ESAT::main(int argc, char** argv) {
         send = true;
       }
 
-      if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Space)) {
+      if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Control)) {
+        pack->movement.blocking = true;
+        send = true;
+      } else if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Space)) {
         pack->movement.shooting = true;
         send = true;
       }
-      
-      
+        
       //Send Package struct with direction
       if (send) {
         pack->id = 1;
@@ -255,8 +258,12 @@ int ESAT::main(int argc, char** argv) {
           for (int i=0; i<status.num_players; i++) {
             drawCube(g_player_size/2, status.players[i].color, status.players[i].position);
             
-            if (!status.players[i].alive)
+            if (!status.players[i].alive) {
               ESAT::DrawSprite(skull, status.players[i].position.x, status.players[i].position.y);
+            } else if (status.players[i].blocking) {
+              ESAT::DrawSprite(block, status.players[i].position.x, status.players[i].position.y);
+            }
+            
             
             //Draw player info
             int x,y,lx,ly;

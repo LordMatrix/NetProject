@@ -4,6 +4,7 @@ typedef struct {
   int player_id;
   Direction direction;
   bool shooting;
+  bool blocking;
 } Movement;
 
 typedef struct {
@@ -27,6 +28,7 @@ typedef struct {
   Direction direction;
   float health;
   bool alive;
+  bool blocking;
   int score;
 } Player;
 
