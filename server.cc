@@ -292,7 +292,7 @@ int main(int argc, char** argv) {
   fd_set SOCK_IN;
   struct sockaddr_in ip, ipc[64];
   int size=sizeof(ip);
-  char buffer[2048];
+  char buffer[sizeof(Package)];
   WSAStartup(MAKEWORD(2,0), &wsa);
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   ip.sin_family=AF_INET;
@@ -306,11 +306,11 @@ int main(int argc, char** argv) {
   Package* pack_out = new Package();
   
   while (1) {
-    memset(buffer, 0, 2048);
+    memset(buffer, 0, sizeof(Package));
     FD_SET(sock, &SOCK_IN);
     select(g_num_clients, &SOCK_IN, NULL, NULL, &utime);
     if (FD_ISSET(sock, &SOCK_IN)) {
-      if (recvfrom(sock, buffer, 2048, 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
+      if (recvfrom(sock, buffer, sizeof(Package), 0, (SOCKADDR*)&ipc[g_num_clients], &size)) {
         
         Package* pack_in = new Package();
         memcpy(pack_in, buffer, sizeof(Package));

@@ -48,9 +48,9 @@ typedef struct {
   int num_players;
   int num_shots;
   int num_hits;
-  Player players[10];
-  Shot shots[50];
-  Hit hits[50];
+  Player players[5];
+  Shot shots[30];
+  Hit hits[30];
 } GameStatus;
 
 typedef struct {
