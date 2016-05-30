@@ -221,7 +221,6 @@ void createShot(Player* player) {
       shot->velocity = {-1.0f, 0.0f};
       break;
     default:
-      printf("\nDirection out of range\n");
       break;
   }
   
@@ -284,8 +283,32 @@ void removePlayer(int id) {
 }
 
 
+/********** SERVER CONSOLE ***********/
+DWORD WINAPI console(LPVOID data) {
+  char cmd[10];
+  
+  while (1) {
+	  gets(&cmd[0]);
+
+	  if (strcmp(cmd, "clients") == 0)
+		  printf("There are %d clients connected\n", g_num_clients);
+	  else if (strcmp(cmd, "players") == 0) {
+		  for (int i=0; i<g_num_clients; i++) {
+			  printf("%s has %dHP left\n", g_players[i]->name, g_players[i]->health);
+		  }
+		  printf("\n");
+	  } else
+		  printf("Unknown command\n");
+  }
+  
+  return 0;
+}
+/*************************************/
+
+
 int main(int argc, char** argv) {
 
+  //Winsock stuff
   struct timeval utime;
   WSAData wsa;
   SOCKET sock;
@@ -297,7 +320,7 @@ int main(int argc, char** argv) {
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   ip.sin_family=AF_INET;
   ip.sin_port=htons(9999);
-  ip.sin_addr.s_addr=inet_addr("127.0.0.1");
+  ip.sin_addr.s_addr=inet_addr("0.0.0.0");
   bind(sock, (SOCKADDR*)&ip, sizeof(ip));
   FD_ZERO(&SOCK_IN);
   utime.tv_sec=0;
@@ -305,6 +328,18 @@ int main(int argc, char** argv) {
   
   Package* pack_out = new Package();
   
+  
+  //Console runs in a new thread
+  DWORD ThreadID;
+  HANDLE ThreadHandle;
+  ThreadHandle = CreateThread(NULL,0,console,NULL,0,&ThreadID);
+  
+  if(ThreadHandle == NULL) {
+    printf("\nError creating console thread\n");
+  }
+  
+  
+  //Main Loop
   while (1) {
     memset(buffer, 0, sizeof(Package));
     FD_SET(sock, &SOCK_IN);
@@ -343,7 +378,7 @@ int main(int argc, char** argv) {
           case 3:
             //Player
             if (createPlayer())  {
-              printf("%d\n",pack_in->player.avatar);
+              printf("Player created with ID %d\n",pack_in->player.avatar);
               g_players[g_num_clients - 1]->avatar = pack_in->player.avatar;
               
               //Default avatar
@@ -454,6 +489,8 @@ int main(int argc, char** argv) {
     }
   }
   
+  //Destroy child process
+  WaitForSingleObject(ThreadHandle, INFINITE);
   return 0;
  
 }

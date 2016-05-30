@@ -78,7 +78,7 @@ void setText() {
 
 
 int ESAT::main(int argc, char** argv) {
-  
+
   bool game_started = false;
   struct timeval time;
   WSAData wsa;
@@ -91,7 +91,7 @@ int ESAT::main(int argc, char** argv) {
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   ip.sin_family=AF_INET;
   ip.sin_port=htons(8888);
-  ip.sin_addr.s_addr=inet_addr("127.0.0.1");
+  ip.sin_addr.s_addr=inet_addr(argv[1]);
 	bind(sock, (SOCKADDR*)&ip, sizeof(ip));
   FD_ZERO(&SOCK_IN);
   time.tv_sec=0;
@@ -100,7 +100,7 @@ int ESAT::main(int argc, char** argv) {
   socks = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   ips.sin_family=AF_INET;
   ips.sin_port=htons(9999);
-  ips.sin_addr.s_addr=inet_addr("127.0.0.1");
+  ips.sin_addr.s_addr=inet_addr(argv[1]);
   
   ESAT::WindowInit(kWinWidth, kWinHeight);
   ESAT::DrawSetTextFont("assets/font/medieval.ttf");
@@ -192,7 +192,7 @@ int ESAT::main(int argc, char** argv) {
         recvfrom(sock, buffer, sizeof(Package), 0, (SOCKADDR*)&ip, &size);
         
         memcpy(pack_in, buffer, sizeof(Package));
-        printf("PACKIN   %d\n",pack_in->id);
+
         if (pack_in->id) {
           player->id = pack_in->player.id;
           player->ip = pack_in->player.ip;
@@ -201,7 +201,7 @@ int ESAT::main(int argc, char** argv) {
           player->color.b = pack_in->player.color.b;
           player->color.a = pack_in->player.color.a;
         } else {
-          printf("Max players reached.Connection refused.\n");
+          printf("Max players reached or server offline. Connection refused.\n");
           exit = true;
           disconnect_quietly = true;
         }
@@ -329,10 +329,6 @@ int ESAT::main(int argc, char** argv) {
           }
         }
       }
-      
-      
-      
-      
     
     }
     
