@@ -85,7 +85,7 @@ int ESAT::main(int argc, char** argv) {
   SOCKET sock, socks;
   fd_set SOCK_IN;
   struct sockaddr_in ip, ips;
-  char buffer[4096];
+  char buffer[2048];
   int size=sizeof(ip);
   WSAStartup(MAKEWORD(2,0), &wsa);
   sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -188,10 +188,10 @@ int ESAT::main(int argc, char** argv) {
         sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
         
         //Get player info back
-        memset(buffer, 0, 4096);
-        recvfrom(sock, buffer, 4096, 0, (SOCKADDR*)&ip, &size);
+        memset(buffer, 0, 2048);
+        recvfrom(sock, buffer, 2048, 0, (SOCKADDR*)&ip, &size);
         
-        memcpy(pack_in, buffer, 4096);
+        memcpy(pack_in, buffer, 2048);
         printf("PACKIN   %d\n",pack_in->id);
         if (pack_in->id) {
           player->id = pack_in->player.id;
@@ -243,15 +243,15 @@ int ESAT::main(int argc, char** argv) {
       
       
       //Receive game status
-      memset(buffer, 0, 4096);
+      memset(buffer, 0, 2048);
       FD_SET(sock, &SOCK_IN);
       select(1, &SOCK_IN, NULL, NULL, &time);
       
       if (FD_ISSET(sock, &SOCK_IN)) {
-        if (recvfrom(sock, buffer, 4096, 0, (SOCKADDR*)&ip, &size)) {
+        if (recvfrom(sock, buffer, 2048, 0, (SOCKADDR*)&ip, &size)) {
           
           memset (pack_in, 0, sizeof(Package));
-          memcpy(pack_in, buffer, 4096);
+          memcpy(pack_in, buffer, 2048);
           
           GameStatus status = pack_in->gamestatus;
           
@@ -352,6 +352,11 @@ int ESAT::main(int argc, char** argv) {
     sendto(sock, (char*)pack, sizeof(Package), 0, (SOCKADDR*)&ips, sizeof(ip));
   }
   
+  // cleanup
+  closesocket(sock);
+  closesocket(socks);
+  WSACleanup();
   ESAT::WindowDestroy();
+  
   return 0;
 }
