@@ -15,6 +15,7 @@
 #include "structs.h"
 
 
+///Draws a colored cube
 void drawCube(int size, Color color, Point2 position) {
   float x = position.x;
   float y = position.y;
@@ -28,6 +29,7 @@ void drawCube(int size, Color color, Point2 position) {
 }
 
 
+///Draws a life bar
 void drawLifeBar(float health, Color color, Point2 position) {
   float x = position.x;
   float y = position.y;
@@ -49,6 +51,7 @@ void drawLifeBar(float health, Color color, Point2 position) {
 }
 
 
+///Draws Hit particles
 void drawHit(Hit hit) {
   float x,y;
   int num_particles = 20;
@@ -65,11 +68,7 @@ void drawHit(Hit hit) {
 }
 
 
-void game() {
-  
-}
-
-
+///Sets text drawing default values
 void setText() {
   ESAT::DrawSetStrokeColor(0,0,0);
   ESAT::DrawSetFillColor(0,0,0);

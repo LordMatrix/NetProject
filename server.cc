@@ -8,6 +8,7 @@
 #include "structs.h"
 
 
+/****** GLOBALS *****/
 Player* g_players[10];
 int g_num_clients=0;
 int g_max_clients=4;
@@ -20,6 +21,7 @@ int g_num_shots=0;
 
 Hit* g_hits[50];
 int g_num_hits=0;
+/********************/
 
 
 ///Returns the index of the player collided with
@@ -77,6 +79,7 @@ int checkShotShotCollisions(Shot* shot) {
 }
 
 
+///Creates a Hit object and increases the buffer count
 void createHit(Point2 position) {
   Hit* hit = new Hit();
   hit->position = position;
@@ -86,6 +89,8 @@ void createHit(Point2 position) {
   g_num_hits++;
 }
 
+
+///Apply damage to a player
 void damagePlayer(Player* player, float amount) {
   if (player->health >= 0.0f)
     player->health -= amount;
@@ -94,6 +99,7 @@ void damagePlayer(Player* player, float amount) {
 }
 
 
+///Moves a player in the map, given the new position is in-bounds and empty
 void move(int player_id, Direction direction) {
   Point2 prev = g_players[player_id]->position;
   float speed = g_player_speed;
@@ -152,6 +158,7 @@ void move(int player_id, Direction direction) {
 }
 
 
+///Creates a new player in the first available spot
 bool createPlayer() {
 
   if (g_num_clients < g_max_clients) {
@@ -201,6 +208,7 @@ bool createPlayer() {
 }
 
 
+///Creates a shot given the player direction of movement
 void createShot(Player* player) {
   Shot* shot = new Shot();
   
@@ -233,6 +241,7 @@ void createShot(Player* player) {
 }
 
 
+///Remove a shot from the buffer
 void destroyShot(Shot* shot) {
   for (int i=0; i<g_num_shots; i++) {
     if (g_shots[i] == shot) {
@@ -247,6 +256,7 @@ void destroyShot(Shot* shot) {
 }
 
 
+///Removes a Hit effect from the buffer
 void destroyHit(Hit* hit) {
   for (int i=0; i<g_num_hits; i++) {
     if (g_hits[i] == hit) {
@@ -261,6 +271,7 @@ void destroyHit(Hit* hit) {
 }
 
 
+///Moves a shot accordingly to its velocity
 void moveShot(Shot* shot) {
   //Advance shot position
   shot->position.x += shot->velocity.x;
@@ -275,6 +286,7 @@ void moveShot(Shot* shot) {
 }
 
 
+///Deletes a player and removes it from the buffer
 void removePlayer(int id) {
   printf("Client %d disconnected from : %s\n", id, inet_ntoa(g_players[id]->ip));
   delete g_players[id];
@@ -294,7 +306,7 @@ DWORD WINAPI console(LPVOID data) {
 		  printf("There are %d clients connected\n", g_num_clients);
 	  else if (strcmp(cmd, "players") == 0) {
 		  for (int i=0; i<g_num_clients; i++) {
-			  printf("%s has %dHP left\n", g_players[i]->name, g_players[i]->health);
+			  printf("%s has %fHP left\n", g_players[i]->name, g_players[i]->health);
 		  }
 		  printf("\n");
 	  } else
