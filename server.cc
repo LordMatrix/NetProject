@@ -300,7 +300,7 @@ DWORD WINAPI console(LPVOID data) {
   char cmd[10];
   
   while (1) {
-	  gets(&cmd[0]);
+	  gets_s(&cmd[0], 10);
 
 	  if (strcmp(cmd, "clients") == 0)
 		  printf("There are %d clients connected\n", g_num_clients);

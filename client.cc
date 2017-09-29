@@ -7,10 +7,10 @@
 
 #include <string>
 
-#include "ESAT/window.h"
-#include "ESAT/draw.h"
-#include "ESAT/input.h"
-#include "ESAT/sprite.h"
+#include <MOMOS/window.h>
+#include <MOMOS/draw.h>
+#include <MOMOS/input.h>
+#include <MOMOS/sprite.h>
 
 #include "structs.h"
 
@@ -23,9 +23,9 @@ void drawCube(int size, Color color, Point2 position) {
   //Create cube points
   float pathpoints[10] = {x,y, x+size,y, x+size,y+size, x,y+size, x,y};
   
-  ESAT::DrawSetStrokeColor(color.r,color.g,color.b,color.a);
-  ESAT::DrawSetFillColor(color.r,color.g,color.b,color.a);
-  ESAT::DrawSolidPath(pathpoints, 5);
+  MOMOS::DrawSetStrokeColor(color.r,color.g,color.b,color.a);
+  MOMOS::DrawSetFillColor(color.r,color.g,color.b,color.a);
+  MOMOS::DrawSolidPath(pathpoints, 5);
 }
 
 
@@ -38,16 +38,16 @@ void drawLifeBar(float health, Color color, Point2 position) {
   
   //Create border points
   float border_points[10] = {x,y, x+width,y, x+width,y+size, x,y+size, x,y};
-  ESAT::DrawSetStrokeColor(0,0,0,255);
-  ESAT::DrawSetFillColor(0,0,0,0);
-  ESAT::DrawSolidPath(border_points, 5);
+  MOMOS::DrawSetStrokeColor(0,0,0,255);
+  MOMOS::DrawSetFillColor(0,0,0,0);
+  MOMOS::DrawSolidPath(border_points, 5);
   
   //Create healthbar points
   width = (width/g_player_health) * health;
   float health_points[10] = {x,y, x+width,y, x+width,y+size, x,y+size, x,y};
-  ESAT::DrawSetStrokeColor(0,0,0,0);
-  ESAT::DrawSetFillColor(color.r,color.g,color.b,color.a);
-  ESAT::DrawSolidPath(health_points, 5);
+  MOMOS::DrawSetStrokeColor(0,0,0,0);
+  MOMOS::DrawSetFillColor(color.r,color.g,color.b,color.a);
+  MOMOS::DrawSolidPath(health_points, 5);
 }
 
 
@@ -61,22 +61,24 @@ void drawHit(Hit hit) {
     x = hit.position.x + cos(angle*i) * hit.age/2;
     y = hit.position.y + sin(angle*i) * hit.age/2;
 
-    ESAT::DrawSetFillColor(0,0,0,255);
-    ESAT::DrawSetStrokeColor(0,0,0,255);
-    ESAT::DrawLine(x,y,x+2,y+2);
+    MOMOS::DrawSetFillColor(0,0,0,255);
+    MOMOS::DrawSetStrokeColor(0,0,0,255);
+    MOMOS::DrawLine(x,y,x+2,y+2);
   }
 }
 
 
 ///Sets text drawing default values
 void setText() {
-  ESAT::DrawSetStrokeColor(0,0,0);
-  ESAT::DrawSetFillColor(0,0,0);
-  ESAT::DrawSetTextSize(30.0f);
+  MOMOS::DrawSetStrokeColor(0,0,0);
+  MOMOS::DrawSetFillColor(0,0,0);
+  MOMOS::DrawSetTextSize(30.0f);
 }
 
 
-int ESAT::main(int argc, char** argv) {
+int main(int argc, char** argv) {
+
+  argv[1] = "127.0.0.1";
 
   bool game_started = false;
   struct timeval time;
@@ -101,8 +103,8 @@ int ESAT::main(int argc, char** argv) {
   ips.sin_port=htons(9999);
   ips.sin_addr.s_addr=inet_addr(argv[1]);
   
-  ESAT::WindowInit(kWinWidth, kWinHeight);
-  ESAT::DrawSetTextFont("assets/font/medieval.ttf");
+  MOMOS::WindowInit(kWinWidth, kWinHeight);
+  MOMOS::DrawSetTextFont("src/WinsockArena/assets/font/medieval.ttf");
   
   Player* player = new Player();
   Package* pack = new Package();
@@ -113,34 +115,34 @@ int ESAT::main(int argc, char** argv) {
   bool disconnect_quietly = false;
   
   std::string name = "";
-  ESAT::SpriteHandle avatars[4];
-  ESAT::SpriteHandle skull;
-  ESAT::SpriteHandle block;
-  ESAT::SpriteHandle score;
+  MOMOS::SpriteHandle avatars[4];
+  MOMOS::SpriteHandle skull;
+  MOMOS::SpriteHandle block;
+  MOMOS::SpriteHandle score;
   
   for (int i=0; i<4; i++) {
-    avatars[i] = ESAT::SpriteFromFile(("assets/img/"+std::to_string(i+1)+".png").c_str());
+    avatars[i] = MOMOS::SpriteFromFile(("src/WinsockArena/assets/img/"+std::to_string(i+1)+".png").c_str());
   }
   
-  skull = ESAT::SpriteFromFile("assets/img/skull.png");
-  score = ESAT::SpriteFromFile("assets/img/score.png");
-  block = ESAT::SpriteFromFile("assets/img/block.png");
+  skull = MOMOS::SpriteFromFile("src/WinsockArena/assets/img/skull.png");
+  score = MOMOS::SpriteFromFile("src/WinsockArena/assets/img/score.png");
+  block = MOMOS::SpriteFromFile("src/WinsockArena/assets/img/block.png");
   
   
-  while(ESAT::WindowIsOpened() && !exit) {
+  while(MOMOS::WindowIsOpened() && !exit) {
     
-    if (ESAT::IsSpecialKeyDown(ESAT::kSpecialKey_Escape))
+    if (MOMOS::IsSpecialKeyDown(MOMOS::kSpecialKey_Escape))
       exit = true;
     
-    ESAT::DrawBegin();
-    ESAT::DrawClear(255,255,255);
+    MOMOS::DrawBegin();
+    MOMOS::DrawClear(255,255,255);
     
     setText();
       
     if (!game_started) {
       
-      char key = ESAT::GetNextPressedKey();
-      if (key) {
+      char key = MOMOS::GetNextPressedKey();
+      if (key > 0) {
         //Check 1-4 numbers
         if (key>=49 && key<=52) {
           player->avatar = key -48;
@@ -150,32 +152,32 @@ int ESAT::main(int argc, char** argv) {
         }
       }
       
-      ESAT::DrawText(100.0f,30.0f,("Nickname:  "+name).c_str());
+      MOMOS::DrawText(100.0f,30.0f,("Nickname:  "+name).c_str());
       
       for (int i=0; i<4; i++) {
         int x = 50.0f+320.0f*i;
-        ESAT::DrawSprite(avatars[i], x, 100.0f);
+        MOMOS::DrawSprite(avatars[i], x, 100.0f);
         
         
         if (player->avatar == i+1) {
-          ESAT::DrawSetFillColor(0,0,255);
-          ESAT::DrawSetTextSize(70.0f);
+          MOMOS::DrawSetFillColor(0,0,255);
+          MOMOS::DrawSetTextSize(70.0f);
         } else {
           setText();
         }
         
-        ESAT::DrawText(x+130, 580.0f, std::to_string(i+1).c_str());
+        MOMOS::DrawText(x+130, 580.0f, std::to_string(i+1).c_str());
 
         
         setText();
         
         x = 50.0f;
-        ESAT::DrawText(x, 660.0f, "Type to introduce your nickname.");
-        ESAT::DrawText(x, 690.0f, "Press 1-4 to select your avatar.");
-        ESAT::DrawText(x, 720.0f, "Press ENTER to connect to the server.");
+        MOMOS::DrawText(x, 660.0f, "Type to introduce your nickname.");
+        MOMOS::DrawText(x, 690.0f, "Press 1-4 to select your avatar.");
+        MOMOS::DrawText(x, 720.0f, "Press ENTER to connect to the server.");
       }
       
-      if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Enter)) {
+      if (MOMOS::IsSpecialKeyPressed(MOMOS::kSpecialKey_Enter)) {
         
         //Set player info  
         memcpy(player->name, name.c_str(), sizeof(name));
@@ -209,24 +211,24 @@ int ESAT::main(int argc, char** argv) {
     } else {
       Package* pack = new Package();
         
-      if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Up)) {
+      if (MOMOS::IsSpecialKeyPressed(MOMOS::kSpecialKey_Up)) {
         pack->movement.direction = UP;
         send = true;
-      } else if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Right)) {
+      } else if (MOMOS::IsSpecialKeyPressed(MOMOS::kSpecialKey_Right)) {
         pack->movement.direction = RIGHT;
         send = true;
-      } else if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Down)) {
+      } else if (MOMOS::IsSpecialKeyPressed(MOMOS::kSpecialKey_Down)) {
         pack->movement.direction = DOWN;
         send = true;
-      } else if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Left)) {
+      } else if (MOMOS::IsSpecialKeyPressed(MOMOS::kSpecialKey_Left)) {
         pack->movement.direction = LEFT;
         send = true;
       }
 
-      if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Control)) {
+      if (MOMOS::IsSpecialKeyPressed(MOMOS::kSpecialKey_Control)) {
         pack->movement.blocking = true;
         send = true;
-      } else if (ESAT::IsSpecialKeyPressed(ESAT::kSpecialKey_Space)) {
+      } else if (MOMOS::IsSpecialKeyPressed(MOMOS::kSpecialKey_Space)) {
         pack->movement.shooting = true;
         send = true;
       }
@@ -258,9 +260,9 @@ int ESAT::main(int argc, char** argv) {
             drawCube(g_player_size/2, status.players[i].color, status.players[i].position);
             
             if (!status.players[i].alive) {
-              ESAT::DrawSprite(skull, status.players[i].position.x, status.players[i].position.y);
+              MOMOS::DrawSprite(skull, status.players[i].position.x, status.players[i].position.y);
             } else if (status.players[i].blocking) {
-              ESAT::DrawSprite(block, status.players[i].position.x, status.players[i].position.y);
+              MOMOS::DrawSprite(block, status.players[i].position.x, status.players[i].position.y);
             }
             
             
@@ -294,23 +296,23 @@ int ESAT::main(int argc, char** argv) {
             }
             
             //Draw avatar
-            ESAT::Mat3 scale, translate, transform;
+            MOMOS::Mat3 scale, translate, transform;
             float factor = 0.2;
             
-            scale = ESAT::Mat3Scale(factor, factor);
-            translate = ESAT::Mat3Translate(x,y);
-            transform = ESAT::Mat3Multiply(translate, scale);
-            ESAT::DrawSpriteWithMatrix(avatars[status.players[i].avatar - 1], transform);
+            scale = MOMOS::Mat3Scale(factor, factor);
+            translate = MOMOS::Mat3Translate(x,y);
+            transform = MOMOS::Mat3Multiply(translate, scale);
+            MOMOS::DrawSpriteWithMatrix(avatars[status.players[i].avatar - 1], transform);
             
             //Draw nickname
-            ESAT::DrawSetFillColor(status.players[i].color.r,status.players[i].color.g,status.players[i].color.b);
-            ESAT::DrawSetTextSize(20.0f);
-            ESAT::DrawText(lx, ly-20.0f, status.players[i].name);
+            MOMOS::DrawSetFillColor(status.players[i].color.r,status.players[i].color.g,status.players[i].color.b);
+            MOMOS::DrawSetTextSize(20.0f);
+            MOMOS::DrawText(lx, ly-20.0f, status.players[i].name);
             
             //Draw score
-            ESAT::DrawSprite(score, lx, ly-10);
+            MOMOS::DrawSprite(score, lx, ly-10);
             setText();
-            ESAT::DrawText(lx+40, ly+15, std::to_string(status.players[i].score).c_str());
+            MOMOS::DrawText(lx+40, ly+15, std::to_string(status.players[i].score).c_str());
             
             //Draw lifebar
             Point2 pos = {lx, ly+25};
@@ -333,8 +335,8 @@ int ESAT::main(int argc, char** argv) {
     
     //Draw status
       
-    ESAT::DrawEnd();
-    ESAT::WindowFrame();
+    MOMOS::DrawEnd();
+    MOMOS::WindowFrame();
   }
   
   //Send disconnection signal
@@ -351,7 +353,7 @@ int ESAT::main(int argc, char** argv) {
   closesocket(sock);
   closesocket(socks);
   WSACleanup();
-  ESAT::WindowDestroy();
+  MOMOS::WindowDestroy();
   
   return 0;
 }
